@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evolutio - Клиент Организма</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Load Phaser 3 -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+</head>
+<body>
+  <div class="hud-container">
+    <!-- Top HUD bar -->
+    <div class="hud-bar">
+      <div class="hud-section">
+        <span class="label">СТАДИЯ:</span>
+        <strong id="hud-stage-name">Подключение...</strong>
+      </div>
+      <div class="hud-section">
+        <span class="label">ДНК:</span>
+        <strong id="hud-dna-value" class="dna-glow">0</strong>
+      </div>
+      <div class="hud-section">
+        <span class="label">ГЕНЕТИК:</span>
+        <span id="hud-geneticist-status" class="status-badge disconnected">ОТКЛЮЧЕН</span>
+      </div>
+    </div>
+
+    <!-- Health Overlay -->
+    <div class="health-overlay">
+      <div class="health-text">Жизненные показатели: <span id="hud-health-val">100/100 HP</span></div>
+      <div class="health-bar-bg">
+        <div class="health-bar-fill" id="hud-health-bar"></div>
+      </div>
+    </div>
+
+    <!-- Instructions Overlay based on Stage -->
+    <div class="instructions-panel" id="instructions">
+      <h3>Цель:</h3>
+      <p id="target-desc">Подключение к серверу...</p>
+    </div>
+  </div>
+
+  <!-- Main Canvas Container -->
+  <div id="game-canvas-container"></div>
+
+  <!-- Waiting screen overlay -->
+  <div id="waiting-screen" class="screen-overlay">
+    <div class="overlay-content">
+      <h1 class="logo-title">EVOLUTIO</h1>
+      <h2>Подключение к сессии...</h2>
+      <p id="connection-status-msg">Связь с сервером не установлена.</p>
+    </div>
+  </div>
+
+  <!-- Load Socket.io and main game script -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

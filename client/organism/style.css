@@ -1,0 +1,275 @@
+:root {
+  --bg-color: #030407;
+  --hud-bg: rgba(8, 10, 18, 0.85);
+  --cyan-glow: #00e5ff;
+  --green-glow: #39ff14;
+  --pink-glow: #ff007f;
+  --font-header: 'Orbitron', sans-serif;
+  --font-body: 'Montserrat', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-color);
+  font-family: var(--font-body);
+  color: #fff;
+  overflow: hidden;
+}
+
+#game-canvas-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* HUD Panel Overlay */
+.hud-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 1rem;
+  z-index: 10;
+  pointer-events: none; /* Let clicks pass through to canvas */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hud-bar {
+  background: var(--hud-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+  pointer-events: auto; /* Allow clicks on HUD if needed */
+}
+
+.hud-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.hud-section .label {
+  color: #5d6e85;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.05rem;
+}
+
+.hud-section strong {
+  font-family: var(--font-header);
+  font-size: 1.1rem;
+}
+
+.dna-glow {
+  color: var(--cyan-glow);
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+}
+
+.status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.status-badge.connected {
+  background: rgba(57, 255, 20, 0.1);
+  border: 1px solid var(--green-glow);
+  color: var(--green-glow);
+  text-shadow: 0 0 5px var(--green-glow);
+}
+
+.status-badge.disconnected {
+  background: rgba(255, 0, 127, 0.1);
+  border: 1px solid var(--pink-glow);
+  color: var(--pink-glow);
+  text-shadow: 0 0 5px var(--pink-glow);
+}
+
+/* Health HUD */
+.health-overlay {
+  background: var(--hud-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 0.75rem;
+  width: 250px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.health-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #8a9fc4;
+  margin-bottom: 0.35rem;
+}
+
+.health-bar-bg {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.health-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ff0055, #ff00aa);
+  box-shadow: 0 0 10px #ff007f;
+  transition: width 0.3s ease;
+}
+
+/* Stage instructions */
+.instructions-panel {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  border-left: 3px solid var(--cyan-glow);
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 1rem;
+  max-width: 320px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  margin-top: 0.25rem;
+  pointer-events: auto;
+}
+
+.instructions-panel h3 {
+  font-family: var(--font-header);
+  font-size: 0.8rem;
+  color: var(--cyan-glow);
+  margin-bottom: 0.25rem;
+}
+
+.instructions-panel p {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #c4d1e6;
+}
+
+/* Connection Overlay Screen */
+.screen-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(5, 7, 10, 0.95);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.overlay-content {
+  max-width: 500px;
+  padding: 2rem;
+}
+
+.logo-title {
+  font-family: var(--font-header);
+  font-size: 3.5rem;
+  font-weight: 900;
+  letter-spacing: 0.3rem;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+  margin-bottom: 1rem;
+}
+
+.overlay-content h2 {
+  font-family: var(--font-header);
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--cyan-glow);
+  margin-bottom: 1.5rem;
+  animation: pulseColor 2s infinite alternate;
+}
+
+.overlay-content p {
+  font-size: 0.9rem;
+  color: #5d6e85;
+}
+
+@keyframes pulseColor {
+  0% { text-shadow: 0 0 5px rgba(0, 229, 255, 0.5); color: #00e5ff; }
+  100% { text-shadow: 0 0 15px rgba(0, 229, 255, 0.9); color: #ffffff; }
+}
+
+/* Final ending overlays */
+.game-over-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.game-over-content {
+  max-width: 650px;
+  background: rgba(10, 12, 22, 0.95);
+  border: 1px solid var(--pink-glow);
+  box-shadow: 0 0 40px rgba(255, 0, 127, 0.2);
+  border-radius: 12px;
+  padding: 3rem;
+}
+
+.ending-title {
+  font-family: var(--font-header);
+  font-size: 2rem;
+  color: #fff;
+  text-shadow: 0 0 15px var(--pink-glow);
+  margin-bottom: 1.5rem;
+}
+
+.ending-desc {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #a4b6cf;
+  margin-bottom: 2.5rem;
+}
+
+.btn-restart {
+  background: linear-gradient(90deg, #ff007f 0%, #ff00ea 100%);
+  color: #fff;
+  font-family: var(--font-header);
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 6px;
+  padding: 1rem 2rem;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+  transition: all 0.3s;
+}
+
+.btn-restart:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(255, 0, 127, 0.7);
+}

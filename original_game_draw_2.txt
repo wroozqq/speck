@@ -1,0 +1,809 @@
+﻿Created At: 2026-06-18T15:45:32Z
+Completed At: 2026-06-18T15:45:32Z
+File Path: `file:///c:/Users/User/Desktop/antigravity/scratch/evolutio-game/game.js`
+Total Lines: 5095
+Total Bytes: 186107
+Showing lines 2601 to 3400
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2601:       // Orc Enemy Model
+2602:       ctx.save();
+2603:       ctx.translate(this.x, this.y);
+2604:       ctx.rotate(this.angle);
+2605: 
+2606:       let inFrenzy = this.health < this.maxHealth * 0.5;
+2607: 
+2608:       // Frenzy rage glow
+2609:       if (inFrenzy) {
+2610:         ctx.shadowBlur = 8;
+2611:         ctx.shadowColor = '#ef4444';
+2612:       }
+2613: 
+2614:       // Torso (heavy leather/hide armor)
+2615:       ctx.fillStyle = '#451a03';
+2616:       ctx.beginPath();
+2617:       ctx.ellipse(0, 0, this.size * 1.2, this.size * 0.95, 0, 0, Math.PI * 2);
+2618:       ctx.fill();
+2619:       ctx.strokeStyle = inFrenzy ? '#ef4444' : '#050508';
+2620:       ctx.lineWidth = inFrenzy ? 2 : 1.2;
+2621:       ctx.stroke();
+2622: 
+2623:       // Orc shoulders
+2624:       ctx.fillStyle = '#1c1917';
+2625:       ctx.beginPath();
+2626:       ctx.arc(-this.size * 0.4, -this.size * 0.8, this.size * 0.4, 0, Math.PI * 2);
+2627:       ctx.arc(-this.size * 0.4, this.size * 0.8, this.size * 0.4, 0, Math.PI * 2);
+2628:       ctx.fill();
+2629:       ctx.stroke();
+2630: 
+2631:       // Head
+2632:       ctx.fillStyle = '#14532d'; // Dark green orc skin
+2633:       ctx.beginPath();
+2634:       ctx.arc(this.size * 0.45, 0, this.size * 0.75, 0, Math.PI * 2);
+2635:       ctx.fill();
+2636:       ctx.stroke();
+2637: 
+2638:       // Jaw with tusks
+2639:       ctx.fillStyle = '#ffffff';
+2640:       ctx.beginPath();
+2641:       ctx.arc(this.size * 0.8, -this.size * 0.2, 1.2, 0, Math.PI * 2);
+2642:       ctx.arc(this.size * 0.8, this.size * 0.2, 1.2, 0, Math.PI * 2);
+2643:       ctx.fill();
+2644: 
+2645:       // Iron helmet
+2646:       ctx.fillStyle = '#4b5563';
+2647:       ctx.beginPath();
+2648:       ctx.arc(this.size * 0.35, 0, this.size * 0.78, Math.PI * 0.7, Math.PI * 1.3);
+2649:       ctx.fill();
+2650: 
+2651:       // Glowing red eyes
+2652:       ctx.fillStyle = inFrenzy ? '#ff0000' : '#f97316';
+2653:       ctx.beginPath();
+2654:       ctx.arc(this.size * 0.6, -this.size * 0.25, 2, 0, Math.PI * 2);
+2655:       ctx.arc(this.size * 0.6, this.size * 0.25, 2, 0, Math.PI * 2);
+2656:       ctx.fill();
+2657: 
+2658:       // Heavy axe
+2659:       ctx.strokeStyle = '#4b5563'; // wood handle
+2660:       ctx.lineWidth = 2.5;
+2661:       ctx.beginPath();
+2662:       ctx.moveTo(this.size * 0.4, this.size * 0.8);
+2663:       ctx.lineTo(this.size * 0.4 + 16, this.size * 0.8 + 5);
+2664:       ctx.stroke();
+2665: 
+2666:       // Axe blade
+2667:       ctx.fillStyle = '#9ca3af';
+2668:       ctx.beginPath();
+2669:       let ax = this.size * 0.4 + 16;
+2670:       let ay = this.size * 0.4 + 8;
+2671:       ctx.moveTo(ax - 2, ay - 6);
+2672:       ctx.lineTo(ax + 8, ay - 10);
+2673:       ctx.lineTo(ax + 8, ay + 10);
+2674:       ctx.lineTo(ax - 2, ay + 6);
+2675:       ctx.closePath();
+2676:       ctx.fill();
+2677:       ctx.stroke();
+2678: 
+2679:       ctx.restore();
+2680: 
+2681:       // Frenzy steam particles
+2682:       if (inFrenzy && ticks % 8 === 0) {
+2683:         particles.push({
+2684:           x: this.x + (Math.random() - 0.5) * this.size,
+2685:           y: this.y - this.size,
+2686:           vx: (Math.random() - 0.5) * 0.5,
+2687:           vy: -1.2,
+2688:           size: Math.random() * 3 + 1.5,
+2689:           color: 'rgba(239, 68, 68, 0.4)',
+2690:           life: 20
+2691:         });
+2692:       }
+2693:     } else if (this.type === 'vampire') {
+2694:       // VAMPIRE: Dark-cloaked creature with bat wings
+2695:       ctx.save();
+2696:       ctx.translate(this.x, this.y);
+2697:       ctx.rotate(this.angle);
+2698: 
+2699:       // Cloak body
+2700:       ctx.fillStyle = '#1c0a24';
+2701:       ctx.beginPath();
+2702:       ctx.ellipse(0, 0, this.size * 1.1, this.size * 0.9, 0, 0, Math.PI * 2);
+2703:       ctx.fill();
+2704:       ctx.strokeStyle = '#7c3aed';
+2705:       ctx.lineWidth = 1.2;
+2706:       ctx.stroke();
+2707: 
+2708:       // Bat wings (flap with time)
+2709:       let flap = Math.sin(Date.now() * 0.007) * 0.6;
+2710:       ctx.fillStyle = 'rgba(76,29,149,0.7)';
+2711:       for (let s of [-1, 1]) {
+2712:         ctx.beginPath();
+2713:         ctx.moveTo(0, 0);
+2714:         ctx.quadraticCurveTo(-this.size * 0.4, s * this.size * (1.2 + flap), -this.size * 1.2, s * this.size * (0.5 + flap));
+2715:         ctx.lineTo(-this.size * 0.3, s * this.size * 0.3);
+2716:         ctx.closePath();
+2717:         ctx.fill();
+2718:         ctx.stroke();
+2719:       }
+2720: 
+2721:       // Pale face
+2722:       ctx.fillStyle = '#e2e8f0';
+2723:       ctx.beginPath();
+2724:       ctx.arc(this.size * 0.4, 0, this.size * 0.6, 0, Math.PI * 2);
+2725:       ctx.fill();
+2726:       ctx.strokeStyle = '#4c1d95';
+2727:       ctx.lineWidth = 0.8;
+2728:       ctx.stroke();
+2729: 
+2730:       // Red glowing eyes
+2731:       ctx.fillStyle = '#dc2626';
+2732:       ctx.shadowBlur = 8; ctx.shadowColor = '#dc2626';
+2733:       ctx.beginPath();
+2734:       ctx.arc(this.size * 0.55, -this.size * 0.18, 1.8, 0, Math.PI * 2);
+2735:       ctx.arc(this.size * 0.55, this.size * 0.18, 1.8, 0, Math.PI * 2);
+2736:       ctx.fill();
+2737:       ctx.shadowBlur = 0;
+2738: 
+2739:       // Fangs
+2740:       ctx.fillStyle = '#f8fafc';
+2741:       ctx.beginPath();
+2742:       ctx.moveTo(this.size * 0.75, -this.size * 0.06);
+2743:       ctx.lineTo(this.size * 0.8, -this.size * 0.16);
+2744:       ctx.lineTo(this.size * 0.68, -this.size * 0.04);
+2745:       ctx.closePath();
+2746:       ctx.fill();
+2747:       ctx.beginPath();
+2748:       ctx.moveTo(this.size * 0.75, this.size * 0.06);
+2749:       ctx.lineTo(this.size * 0.8, this.size * 0.16);
+2750:       ctx.lineTo(this.size * 0.68, this.size * 0.04);
+2751:       ctx.closePath();
+2752:       ctx.fill();
+2753: 
+2754:       ctx.restore();
+2755: 
+2756:     } else if (this.type === 'shaman') {
+2757:       // SHAMAN: Tribal spellcaster with glowing bone staff
+2758:       ctx.save();
+2759:       ctx.translate(this.x, this.y);
+2760:       ctx.rotate(this.angle);
+2761: 
+2762:       // Robes (animal hide)
+2763:       ctx.fillStyle = '#713f12';
+2764:       ctx.beginPath();
+2765:       ctx.ellipse(0, 0, this.size * 1.05, this.size * 0.85, 0, 0, Math.PI * 2);
+2766:       ctx.fill();
+2767:       ctx.strokeStyle = '#92400e';
+2768:       ctx.lineWidth = 1.2;
+2769:       ctx.stroke();
+2770: 
+2771:       // Skull mask
+2772:       ctx.fillStyle = '#fafaf9';
+2773:       ctx.beginPath();
+2774:       ctx.arc(this.size * 0.38, 0, this.size * 0.65, 0, Math.PI * 2);
+2775:       ctx.fill();
+2776:       ctx.stroke();
+2777: 
+2778:       // Hollow eye sockets
+2779:       ctx.fillStyle = '#0c0a09';
+2780:       ctx.beginPath();
+2781:       ctx.arc(this.size * 0.52, -this.size * 0.2, this.size * 0.16, 0, Math.PI * 2);
+2782:       ctx.arc(this.size * 0.52, this.size * 0.2, this.size * 0.16, 0, Math.PI * 2);
+2783:       ctx.fill();
+2784: 
+2785:       // Glowing hex rune on chest
+2786:       let runeGlow = 0.4 + Math.sin(Date.now() * 0.006) * 0.4;
+2787:       ctx.fillStyle = `rgba(34, 197, 94, ${runeGlow})`;
+2788:       ctx.shadowBlur = 6 + runeGlow * 8; ctx.shadowColor = '#22c55e';
+2789:       ctx.beginPath();
+2790:       ctx.arc(-this.size * 0.1, 0, this.size * 0.28, 0, Math.PI * 2);
+2791:       ctx.fill();
+2792:       ctx.shadowBlur = 0;
+2793: 
+2794:       // Bone staff
+2795:       ctx.strokeStyle = '#d6d3d1';
+2796:       ctx.lineWidth = 2;
+2797:       ctx.beginPath();
+2798:       ctx.moveTo(this.size * 0.4, this.size * 0.8);
+2799:       ctx.lineTo(this.size * 0.4 + 18, this.size * 0.8 + 5);
+2800:       ctx.stroke();
+2801:       // Skull tip
+2802:       ctx.fillStyle = '#fafaf9';
+2803:       ctx.beginPath();
+2804:       ctx.arc(this.size * 0.4 + 20, this.size * 0.8 + 5.5, 4, 0, Math.PI * 2);
+2805:       ctx.fill();
+2806: 
+2807:       ctx.restore();
+2808: 
+2809:     } else {
+2810:       // Player Hatchling/Drake/Dragon Models
+2811:       let alert = this.alertLevel || 0;
+2812:       let excitement = this.excitementLevel || 0;
+2813:       
+2814:       // Shift base color dynamically on alert (turns red/pink)
+2815:       let rR = Math.floor(alert * 255);
+2816:       let rG = Math.floor((1 - alert) * 240);
+2817:       let rB = Math.floor((1 - alert) * 255 + alert * 109);
+2818:       ctx.fillStyle = `rgb(${rR}, ${rG}, ${rB})`;
+2819:       
+2820:       ctx.beginPath();
+2821:       ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+2822:       ctx.fill();
+2823:       ctx.strokeStyle = '#050508';
+2824:       ctx.lineWidth = 1.5 + excitement * 1.5;
+2825:       ctx.stroke();
+2826:       
+2827:       // AI Generated Horns
+2828:       if (this.hornLength > 0) {
+2829:         let alert = this.alertLevel || 0;
+2830:         let hornScale = 1.0 + alert * 0.8;
+2831:         
+2832:         ctx.fillStyle = alert > 0.4 ? '#ffffff' : '#ff2a6d';
+2833:         let hx1 = this.x + Math.cos(this.angle + 1.2) * (this.size * 0.8);
+2834:         let hy1 = this.y + Math.sin(this.angle + 1.2) * (this.size * 0.8);
+2835:         let hx2 = this.x + Math.cos(this.angle - 1.2) * (this.size * 0.8);
+2836:         let hy2 = this.y + Math.sin(this.angle - 1.2) * (this.size * 0.8);
+2837:         
+2838:         ctx.beginPath();
+2839:         ctx.moveTo(hx1, hy1);
+2840:         ctx.lineTo(hx1 + Math.cos(this.angle + 1.8) * (this.hornLength * hornScale), hy1 + Math.sin(this.angle + 1.8) * (this.hornLength * hornScale));
+2841:         ctx.lineTo(hx1 - Math.cos(this.angle) * 3, hy1 - Math.sin(this.angle) * 3);
+2842:         
+2843:         ctx.moveTo(hx2, hy2);
+2844:         ctx.lineTo(hx2 + Math.cos(this.angle - 1.8) * (this.hornLength * hornScale), hy2 + Math.sin(this.angle - 1.8) * (this.hornLength * hornScale));
+2845:         ctx.lineTo(hx2 - Math.cos(this.angle) * 3, hy2 - Math.sin(this.angle) * 3);
+2846:         ctx.fill();
+2847:       }
+2848:       
+2849:       // AI Generated Eyes placement
+2850:       if (this.eyeCount > 0) {
+2851:         let excitement = this.excitementLevel || 0;
+2852:         let alert = this.alertLevel || 0;
+2853:         let eyeRad = 3.5 + excitement * 1.5;
+2854:         let eyeOffsetAngle = this.eyeOffsetAngle || 0.5;
+2855:         
+2856:         ctx.fillStyle = alert > 0.5 ? '#ff2a6d' : '#ffffff';
+2857:         let ex1 = this.x + Math.cos(this.angle + eyeOffsetAngle) * (this.size * 0.7);
+2858:         let ey1 = this.y + Math.sin(this.angle + eyeOffsetAngle) * (this.size * 0.7);
+2859:         let ex2 = this.x + Math.cos(this.angle - eyeOffsetAngle) * (this.size * 0.7);
+2860:         let ey2 = this.y + Math.sin(this.angle - eyeOffsetAngle) * (this.size * 0.7);
+2861:         
+2862:         ctx.beginPath();
+2863:         ctx.arc(ex1, ey1, eyeRad, 0, Math.PI * 2);
+2864:         ctx.arc(ex2, ey2, eyeRad, 0, Math.PI * 2);
+2865:         ctx.fill();
+2866:         
+2867:         ctx.fillStyle = '#000000';
+2868:         ctx.beginPath();
+2869:         let pupilSize = 1.5 - excitement * 0.5;
+2870:         ctx.arc(ex1 + Math.cos(this.angle)*1, ey1 + Math.sin(this.angle)*1, pupilSize, 0, Math.PI * 2);
+2871:         ctx.arc(ex2 + Math.cos(this.angle)*1, ey2 + Math.sin(this.angle)*1, pupilSize, 0, Math.PI * 2);
+2872:         ctx.fill();
+2873:       }
+2874:     }
+2875:     
+2876:     // Draw Health Bar above mobs (rats and guards)
+2877:     if (!this.isPlayer) {
+2878:       let barW = this.size * 2.2;
+2879:       let barH = 3.5;
+2880:       let bx = this.x - barW / 2;
+2881:       let by = this.y - this.size - 9;
+2882:       
+2883:       // Draw background
+2884:       ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+2885:       ctx.fillRect(bx, by, barW, barH);
+2886:       
+2887:       // Draw health fill
+2888:       let hpPct = Math.max(0, this.health / this.maxHealth);
+2889:       ctx.fillStyle = this.type === 'guard' ? '#ef4444' : '#22c55e'; // Red for guards, green for rats
+2890:       ctx.fillRect(bx, by, barW * hpPct, barH);
+2891:       
+2892:       // Draw border
+2893:       ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+2894:       ctx.lineWidth = 0.5;
+2895:       ctx.strokeRect(bx, by, barW, barH);
+2896:     }
+2897:     
+2898:     ctx.restore();
+2899:   }
+2900: }
+2901: 
+2902: // ==========================================
+2903: // MAGNETIC LOOT ITEM CLASS
+2904: // ==========================================
+2905: class LootItem {
+2906:   constructor(x, y, type) {
+2907:     this.x = x;
+2908:     this.y = y;
+2909:     this.type = type; // 'gold', 'dna'
+2910:     this.size = type === 'gold' ? 3.5 : 4.0;
+2911:     this.color = type === 'gold' ? '#facc15' : '#00f0ff';
+2912:     
+2913:     let angle = Math.random() * Math.PI * 2;
+2914:     let speed = Math.random() * 3.5 + 2.0;
+2915:     this.vx = Math.cos(angle) * speed;
+2916:     this.vy = Math.sin(angle) * speed;
+2917:     this.life = 250; // Decays if ignored
+2918:   }
+2919:   
+2920:   update(playerEntity) {
+2921:     // Magnetize to player when close (<150px)
+2922:     let d = Math.hypot(playerEntity.x - this.x, playerEntity.y - this.y);
+2923:     if (d < 150) {
+2924:       let pull = 0.28;
+2925:       let angle = Math.atan2(playerEntity.y - this.y, playerEntity.x - this.x);
+2926:       this.vx += Math.cos(angle) * pull;
+2927:       this.vy += Math.sin(angle) * pull;
+2928:     }
+2929:     
+2930:     this.x += this.vx;
+2931:     this.y += this.vy;
+2932:     this.vx *= 0.91;
+2933:     this.vy *= 0.91;
+2934:     
+2935:     checkWallCollisions(this);
+2936:     this.life--;
+2937:   }
+2938:   
+2939:   draw(ctx) {
+2940:     ctx.fillStyle = this.color;
+2941:     ctx.shadowBlur = 6;
+2942:     ctx.shadowColor = this.color;
+2943:     
+2944:     ctx.beginPath();
+2945:     if (this.type === 'gold') {
+2946:       ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+2947:     } else {
+2948:       // Diamond DNA Gem
+2949:       ctx.moveTo(this.x, this.y - this.size);
+2950:       ctx.lineTo(this.x + this.size, this.y);
+2951:       ctx.lineTo(this.x, this.y + this.size);
+2952:       ctx.lineTo(this.x - this.size, this.y);
+2953:       ctx.closePath();
+2954:     }
+2955:     ctx.fill();
+2956:     ctx.shadowBlur = 0;
+2957:   }
+2958: }
+2959: 
+2960: // ==========================================
+2961: // BAT HELPER CLASS (DRONES FOR FOXP2 GENE)
+2962: // ==========================================
+2963: class BatHelper {
+2964:   constructor(x, y, owner) {
+2965:     this.x = x;
+2966:     this.y = y;
+2967:     this.vx = 0;
+2968:     this.vy = 0;
+2969:     this.owner = owner;
+2970:     this.size = 6;
+2971:     this.angle = Math.random() * Math.PI * 2;
+2972:     this.carrying = null; // null or 'spore', 'cheese', 'potion', 'gold', 'dna'
+2973:     this.speed = 2.5;
+2974:     this.acceleration = 0.15;
+2975:     this.wingWiggle = 0;
+2976:   }
+2977: 
+2978:   update(foodList) {
+2979:     this.wingWiggle += 0.25;
+2980:     
+2981:     // If not carrying anything, seek closest food or loot item
+2982:     if (!this.carrying) {
+2983:       let closest = null;
+2984:       let minDist = 300; // Search radius for bats
+2985:       
+2986:       // Search food
+2987:       for (let f of foodList) {
+2988:         let d = Math.hypot(f.x - this.x, f.y - this.y);
+2989:         if (d < minDist) {
+2990:           minDist = d;
+2991:           closest = { type: 'food', item: f };
+2992:         }
+2993:       }
+2994:       
+2995:       // Search loot items
+2996:       for (let l of lootItems) {
+2997:         let d = Math.hypot(l.x - this.x, l.y - this.y);
+2998:         if (d < minDist) {
+2999:           minDist = d;
+3000:           closest = { type: 'loot', item: l };
+3001:         }
+3002:       }
+3003:       
+3004:       if (closest) {
+3005:         // Fly to target
+3006:         let targetX = closest.item.x;
+3007:         let targetY = closest.item.y;
+3008:         let angle = Math.atan2(targetY - this.y, targetX - this.x);
+3009:         this.angle = angle;
+3010:         this.vx += Math.cos(this.angle) * this.acceleration;
+3011:         this.vy += Math.sin(this.angle) * this.acceleration;
+3012:         
+3013:         // If close, pick up
+3014:         let distToTarget = Math.hypot(targetX - this.x, targetY - this.y);
+3015:         if (distToTarget < 15) {
+3016:           if (closest.type === 'food') {
+3017:             let idx = foodList.indexOf(closest.item);
+3018:             if (idx !== -1) {
+3019:               this.carrying = closest.item.type;
+3020:               foodList.splice(idx, 1);
+3021:               spawnFood();
+3022:             }
+3023:           } else {
+3024:             let idx = lootItems.indexOf(closest.item);
+3025:             if (idx !== -1) {
+3026:               this.carrying = closest.item.type; // 'gold' or 'dna'
+3027:               lootItems.splice(idx, 1);
+3028:             }
+3029:           }
+3030:           synth.playEat();
+3031:         }
+3032:       } else {
+3033:         // Hover near owner
+3034:         let targetX = this.owner.x + Math.sin(Date.now() * 0.003 + (this.x * 0.05)) * 40;
+3035:         let targetY = this.owner.y + Math.cos(Date.now() * 0.003 + (this.y * 0.05)) * 40;
+3036:         let angle = Math.atan2(targetY - this.y, targetX - this.x);
+3037:         this.angle = angle;
+3038:         this.vx += Math.cos(this.angle) * this.acceleration;
+3039:         this.vy += Math.sin(this.angle) * this.acceleration;
+3040:       }
+3041:     } else {
+3042:       // Return to owner
+3043:       let angle = Math.atan2(this.owner.y - this.y, this.owner.x - this.x);
+3044:       this.angle = angle;
+3045:       this.vx += Math.cos(this.angle) * this.acceleration;
+3046:       this.vy += Math.sin(this.angle) * this.acceleration;
+3047:       
+3048:       let distToOwner = Math.hypot(this.owner.x - this.x, this.owner.y - this.y);
+3049:       if (distToOwner < this.owner.size + 10) {
+3050:         // Deposit resources
+3051:         if (this.carrying === 'potion') {
+3052:           this.owner.health = Math.min(this.owner.maxHealth, this.owner.health + 25);
+3053:           this.owner.energy = Math.min(this.owner.maxEnergy, this.owner.energy + 10);
+3054:           state.dna += 4;
+3055:           logRow("Р›РµС‚СѓС‡Р°СЏ РјС‹С€СЊ РїСЂРёРЅРµСЃР»Р° Р·РµР»СЊРµ Р·РґРѕСЂРѕРІСЊСЏ!", "gain");
+3056:         } else if (this.carrying === 'spore' || this.carrying === 'cheese') {
+3057:           this.owner.energy = Math.min(this.owner.maxEnergy, this.owner.energy + 12);
+3058:           this.owner.evolveProgress = Math.min(100, this.owner.evolveProgress + 2.5);
+3059:           state.dna += 2;
+3060:           logRow(`Р›РµС‚СѓС‡Р°СЏ РјС‹С€СЊ РїСЂРёРЅРµСЃР»Р° РµРґСѓ: ${this.carrying === 'cheese' ? 'СЃС‹СЂ' : 'РјРѕС…'}`, "gain");
+3061:         } else if (this.carrying === 'gold') {
+3062:           state.gold += 10;
+3063:           logRow("Р›РµС‚СѓС‡Р°СЏ РјС‹С€СЊ РїСЂРёРЅРµСЃР»Р° Р·РѕР»РѕС‚Рѕ (+10)", "gain");
+3064:         } else if (this.carrying === 'dna') {
+3065:           state.dna += 12;
+3066:           logRow("Р›РµС‚СѓС‡Р°СЏ РјС‹С€СЊ РїСЂРёРЅРµСЃР»Р° Р”РќРљ-СЌСЃСЃРµРЅС†РёСЋ (+12 Р”РќРљ)", "adapt");
+3067:         }
+3068:         
+3069:         synth.playEat();
+3070:         this.carrying = null;
+3071:       }
+3072:     }
+3073:     
+3074:     // Move physics
+3075:     this.x += this.vx;
+3076:     this.y += this.vy;
+3077:     this.vx *= 0.85;
+3078:     this.vy *= 0.85;
+3079:     
+3080:     checkWallCollisions(this);
+3081:   }
+3082: 
+3083:   draw(ctx) {
+3084:     ctx.save();
+3085:     ctx.translate(this.x, this.y);
+3086:     ctx.rotate(this.angle);
+3087:     
+3088:     // Draw bat helper body
+3089:     ctx.fillStyle = '#1e1b4b'; // Deep violet/dark color
+3090:     ctx.beginPath();
+3091:     ctx.ellipse(0, 0, this.size * 1.2, this.size * 0.7, 0, 0, Math.PI * 2);
+3092:     ctx.fill();
+3093:     
+3094:     // Glowing eyes
+3095:     ctx.fillStyle = '#ef4444';
+3096:     ctx.beginPath();
+3097:     ctx.arc(this.size * 0.6, -1.5, 1, 0, Math.PI * 2);
+3098:     ctx.arc(this.size * 0.6, 1.5, 1, 0, Math.PI * 2);
+3099:     ctx.fill();
+3100:     
+3101:     // Flapping wings
+3102:     let wingFlap = Math.sin(this.wingWiggle) * this.size * 1.5;
+3103:     ctx.fillStyle = '#0f172a';
+3104:     ctx.beginPath();
+3105:     ctx.moveTo(0, 0);
+3106:     ctx.lineTo(-this.size * 0.5, -this.size * 1.8 + wingFlap * 0.3);
+3107:     ctx.lineTo(-this.size * 1.6, -this.size * 1.4 + wingFlap);
+3108:     ctx.lineTo(-this.size * 0.6, 0);
+3109:     ctx.closePath();
+3110:     ctx.fill();
+3111:     
+3112:     ctx.beginPath();
+3113:     ctx.moveTo(0, 0);
+3114:     ctx.lineTo(-this.size * 0.5, this.size * 1.8 - wingFlap * 0.3);
+3115:     ctx.lineTo(-this.size * 1.6, this.size * 1.4 - wingFlap);
+3116:     ctx.lineTo(-this.size * 0.6, 0);
+3117:     ctx.closePath();
+3118:     ctx.fill();
+3119:     
+3120:     // Draw carried item if any
+3121:     if (this.carrying) {
+3122:       let itemColor = '#22c55e';
+3123:       if (this.carrying === 'potion') itemColor = '#ef4444';
+3124:       else if (this.carrying === 'cheese' || this.carrying === 'gold') itemColor = '#facc15';
+3125:       else if (this.carrying === 'dna') itemColor = '#00f0ff';
+3126:       
+3127:       ctx.fillStyle = itemColor;
+3128:       ctx.beginPath();
+3129:       ctx.arc(this.size * 0.8, 0, 2.5, 0, Math.PI * 2);
+3130:       ctx.fill();
+3131:     }
+3132:     
+3133:     ctx.restore();
+3134:   }
+3135: }
+3136: 
+3137: // ==========================================
+3138: // COLLISION PHYSICS FOR DUNGEON WALLS
+3139: // ==========================================
+3140: function checkWallCollisions(entity) {
+3141:   let r = entity.size;
+3142:   let minCol = Math.floor((entity.x - r) / TILE_SIZE);
+3143:   let maxCol = Math.floor((entity.x + r) / TILE_SIZE);
+3144:   let minRow = Math.floor((entity.y - r) / TILE_SIZE);
+3145:   let maxRow = Math.floor((entity.y + r) / TILE_SIZE);
+3146:   
+3147:   for (let row = minRow; row <= maxRow; row++) {
+3148:     for (let col = minCol; col <= maxCol; col++) {
+3149:       if (row >= 0 && row < GRID_ROWS && col >= 0 && col < GRID_COLS) {
+3150:         let cell = MAP_DATA[row][col];
+3151:         if (cell === 1 || cell === 2) {
+3152:           let wallL = col * TILE_SIZE;
+3153:           let wallR = wallL + TILE_SIZE;
+3154:           let wallT = row * TILE_SIZE;
+3155:           let wallB = wallT + TILE_SIZE;
+3156:           
+3157:           let closestX = Math.max(wallL, Math.min(entity.x, wallR));
+3158:           let closestY = Math.max(wallT, Math.min(entity.y, wallB));
+3159:           
+3160:           let dx = entity.x - closestX;
+3161:           let dy = entity.y - closestY;
+3162:           let dist = Math.hypot(dx, dy);
+3163:           
+3164:           if (dist < r && dist > 0) {
+3165:             entity.x = closestX + (dx / dist) * r;
+3166:             entity.y = closestY + (dy / dist) * r;
+3167:             
+3168:             let angle = Math.atan2(dy, dx);
+3169:             let spd = Math.hypot(entity.vx, entity.vy);
+3170:             entity.vx = Math.cos(angle) * spd * 0.3;
+3171:             entity.vy = Math.sin(angle) * spd * 0.3;
+3172:           }
+3173:         }
+3174:       }
+3175:     }
+3176:   }
+3177: }
+3178: 
+3179: function castRay(x, y, dx, dy, maxDist) {
+3180:   let step = 6;
+3181:   let curr = 0;
+3182:   let cx = x;
+3183:   let cy = y;
+3184:   while (curr < maxDist) {
+3185:     cx += dx * step;
+3186:     cy += dy * step;
+3187:     curr += step;
+3188:     
+3189:     let col = Math.floor(cx / TILE_SIZE);
+3190:     let row = Math.floor(cy / TILE_SIZE);
+3191:     if (row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) return curr;
+3192:     let cell = MAP_DATA[row][col];
+3193:     if (cell === 1 || cell === 2) return curr;
+3194:   }
+3195:   return maxDist;
+3196: }
+3197: 
+3198: // Global rooms and relics lists
+3199: let rooms = [];
+3200: let relicPickups = [];
+3201: let portal = null;
+3202: 
+3203: // RELIC PICKUP ENTITY CLASS
+3204: class RelicPickup {
+3205:   constructor(x, y, type) {
+3206:     this.x = x;
+3207:     this.y = y;
+3208:     this.type = type; // 'crown', 'shield', 'boots'
+3209:     this.size = 10;
+3210:     
+3211:     let angle = Math.random() * Math.PI * 2;
+3212:     let speed = Math.random() * 2.5 + 1.0;
+3213:     this.vx = Math.cos(angle) * speed;
+3214:     this.vy = Math.sin(angle) * speed;
+3215:   }
+3216:   
+3217:   update() {
+3218:     this.x += this.vx;
+3219:     this.y += this.vy;
+3220:     this.vx *= 0.92;
+3221:     this.vy *= 0.92;
+3222:     checkWallCollisions(this);
+3223:   }
+3224:   
+3225:   draw(ctx) {
+3226:     // Glowing aura
+3227:     let glow = 20 + Math.sin(Date.now() * 0.01) * 5;
+3228:     ctx.fillStyle = 'rgba(250, 204, 21, 0.2)';
+3229:     ctx.beginPath();
+3230:     ctx.arc(this.x, this.y, glow, 0, Math.PI * 2);
+3231:     ctx.fill();
+3232: 
+3233:     // Icon
+3234:     ctx.fillStyle = '#facc15';
+3235:     ctx.font = '16px Montserrat';
+3236:     ctx.textAlign = 'center';
+3237:     ctx.textBaseline = 'middle';
+3238:     let icon = this.type === 'crown' ? 'рџ‘‘' : (this.type === 'shield' ? 'рџ›ЎпёЏ' : 'рџҐѕ');
+3239:     ctx.fillText(icon, this.x, this.y);
+3240:   }
+3241: }
+3242: 
+3243: // PROCEDURAL DUNGEON MAP GENERATOR
+3244: function generateDungeonMap() {
+3245:   // 1. Fill MAP_DATA with walls (1)
+3246:   for (let r = 0; r < GRID_ROWS; r++) {
+3247:     for (let c = 0; c < GRID_COLS; c++) {
+3248:       MAP_DATA[r][c] = 1;
+3249:     }
+3250:   }
+3251: 
+3252:   // 2. Define rooms: {x, y, w, h} in tile coordinates (Procedural AI layout)
+3253:   rooms = [];
+3254:   rooms.push({ x: 1, y: 1, w: 4, h: 4 }); // Start room (top-left)
+3255:   
+3256:   let attempts = 0;
+3257:   while (rooms.length < 9 && attempts < 250) {
+3258:     attempts++;
+3259:     let rw = 2 + Math.floor(Math.random() * 3); // width 2-4
+3260:     let rh = 2 + Math.floor(Math.random() * 3); // height 2-4
+3261:     let rx = 1 + Math.floor(Math.random() * 14); // col 1-14
+3262:     let ry = 1 + Math.floor(Math.random() * 14); // row 1-14
+3263:     
+3264:     let overlaps = false;
+3265:     // Keep distance from start and boss room areas
+3266:     if (rx < 6 && ry < 6) overlaps = true;
+3267:     if (rx + rw > 14 && ry + rh > 14) overlaps = true;
+3268:     
+3269:     for (let r of rooms) {
+3270:       if (!(rx + rw < r.x || rx > r.x + r.w || ry + rh < r.y || ry > r.y + r.h)) {
+3271:         overlaps = true;
+3272:         break;
+3273:       }
+3274:     }
+3275:     
+3276:     if (!overlaps) {
+3277:       rooms.push({ x: rx, y: ry, w: rw, h: rh });
+3278:     }
+3279:   }
+3280:   
+3281:   // Sort intermediate rooms by distance to create sequential corridors flowing top-left to bottom-right
+3282:   let startRoom = rooms[0];
+3283:   let intermediates = rooms.slice(1);
+3284:   intermediates.sort((a, b) => (a.x + a.y) - (b.x + b.y));
+3285:   rooms = [startRoom, ...intermediates, { x: 15, y: 15, w: 4, h: 4 }]; // Boss room (bottom-right)
+3286: 
+3287:   // Carve rooms
+3288:   rooms.forEach(room => {
+3289:     for (let r = room.y; r < room.y + room.h; r++) {
+3290:       for (let c = room.x; c < room.x + room.w; c++) {
+3291:         if (r >= 0 && r < GRID_ROWS && c >= 0 && c < GRID_COLS) {
+3292:           MAP_DATA[r][c] = 0;
+3293:         }
+3294:       }
+3295:     }
+3296:     
+3297:     // Add decorative pillars (2) in rooms larger than 3x3
+3298:     if (room.w >= 4 && room.h >= 4) {
+3299:       let cx = Math.floor(room.x + room.w / 2);
+3300:       let cy = Math.floor(room.y + room.h / 2);
+3301:       if (room !== rooms[0] && room !== rooms[rooms.length - 1]) { // Not in start or boss room
+3302:         MAP_DATA[cy][cx] = 2;
+3303:       }
+3304:     }
+3305:   });
+3306: 
+3307:   // Helper to carve corridors between center of rooms
+3308:   function carveCorridor(x1, y1, x2, y2) {
+3309:     let x = x1;
+3310:     let y = y1;
+3311:     while (x !== x2) {
+3312:       MAP_DATA[y][x] = 0;
+3313:       x += (x2 > x ? 1 : -1);
+3314:     }
+3315:     while (y !== y2) {
+3316:       MAP_DATA[y][x] = 0;
+3317:       y += (y2 > y ? 1 : -1);
+3318:     }
+3319:   }
+3320: 
+3321:   // Connect rooms sequentially to ensure path exists from start to end
+3322:   for (let i = 0; i < rooms.length - 1; i++) {
+3323:     let r1 = rooms[i];
+3324:     let r2 = rooms[i + 1];
+3325:     let cx1 = Math.floor(r1.x + r1.w / 2);
+3326:     let cy1 = Math.floor(r1.y + r1.h / 2);
+3327:     let cx2 = Math.floor(r2.x + r2.w / 2);
+3328:     let cy2 = Math.floor(r2.y + r2.h / 2);
+3329:     carveCorridor(cx1, cy1, cx2, cy2);
+3330:   }
+3331: 
+3332:   // 3. Generate torches procedurally
+3333:   torches = [];
+3334:   rooms.forEach((room) => {
+3335:     let tx = (room.x + 1) * TILE_SIZE;
+3336:     let ty = room.y * TILE_SIZE + 10; // near top wall
+3337:     torches.push({ x: tx, y: ty });
+3338:     
+3339:     if (room.w >= 4) {
+3340:       let tx2 = (room.x + room.w - 1) * TILE_SIZE;
+3341:       torches.push({ x: tx2, y: ty });
+3342:     }
+3343:   });
+3344: 
+3345:   // 4. Generate chests procedurally (12 normal + 1 Royal)
+3346:   chests = [];
+3347:   let chestCount = 0;
+3348:   for (let i = 1; i < rooms.length - 1; i++) {
+3349:     let r = rooms[i];
+3350:     let cx = r.x * TILE_SIZE + 35;
+3351:     let cy = r.y * TILE_SIZE + 35;
+3352:     chests.push({ x: cx, y: cy, open: false, isRoyal: false });
+3353:     chestCount++;
+3354:     
+3355:     if (r.w >= 4 && chestCount < 12) {
+3356:       let cx2 = (r.x + r.w - 1) * TILE_SIZE + 65;
+3357:       let cy2 = (r.y + r.h - 1) * TILE_SIZE + 65;
+3358:       chests.push({ x: cx2, y: cy2, open: false, isRoyal: false });
+3359:       chestCount++;
+3360:     }
+3361:   }
+3362:   
+3363:   while (chestCount < 12) {
+3364:     let rIdx = 1 + Math.floor(Math.random() * (rooms.length - 2));
+3365:     let r = rooms[rIdx];
+3366:     let cx = r.x * TILE_SIZE + Math.floor(Math.random() * (r.w - 1)) * TILE_SIZE + 50;
+3367:     let cy = r.y * TILE_SIZE + Math.floor(Math.random() * (r.h - 1)) * TILE_SIZE + 50;
+3368:     if (!chests.some(c => Math.hypot(c.x - cx, c.y - cy) < 40)) {
+3369:       chests.push({ x: cx, y: cy, open: false, isRoyal: false });
+3370:       chestCount++;
+3371:     }
+3372:   }
+3373: 
+3374:   // Royal chest behind the Boss at bottom-right
+3375:   let bossRoom = rooms[rooms.length - 1];
+3376:   chests.push({ 
+3377:     x: (bossRoom.x + bossRoom.w - 1) * TILE_SIZE + 50, 
+3378:     y: (bossRoom.y + bossRoom.h - 1) * TILE_SIZE + 50, 
+3379:     open: false, 
+3380:     isRoyal: true 
+3381:   });
+3382: }
+3383: 
+3384: // COLLECT RELIC FUNCTION
+3385: function collectRelic(type) {
+3386:   if (state.relics[type]) {
+3387:     logRow("Р’С‹ СѓР¶Рµ РІР»Р°РґРµРµС‚Рµ СЌС‚РѕР№ СЂРµР»РёРєРІРёРµР№!", "sys");
+3388:     return;
+3389:   }
+3390:   
+3391:   state.relics[type] = true;
+3392:   player.applyPlayerGenes();
+3393:   synth.playEvolve();
+3394:   
+3395:   let name = "";
+3396:   if (type === 'crown') name = "РљРѕСЂРѕРЅР° РЎРёР»С‹ (+50% СѓСЂРѕРЅР°)";
+3397:   else if (type === 'shield') name = "Р©РёС‚ РўРёС‚Р°РЅР° (+25% Рє Р±СЂРѕРЅРµ)";
+3398:   else if (type === 'boots') name = "РЎР°РїРѕРіРё Р’РµС‚СЂР° (+40% Рє СЃРєРѕСЂРѕСЃС‚Рё)";
+3399:   
+3400:   logRow(`рџ’Ќ Р’С‹ РѕР±СЂРµР»Рё Р»РµРіРµРЅРґР°СЂРЅСѓСЋ СЂРµР»РёРєРІРёСЋ: ${name}!`, "gain");
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+

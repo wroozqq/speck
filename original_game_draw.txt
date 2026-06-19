@@ -1,0 +1,809 @@
+﻿Created At: 2026-06-18T15:45:29Z
+Completed At: 2026-06-18T15:45:30Z
+File Path: `file:///c:/Users/User/Desktop/antigravity/scratch/evolutio-game/game.js`
+Total Lines: 5095
+Total Bytes: 186107
+Showing lines 1801 to 2600
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1801:         ctx.lineTo(lx, ly);
+1802:         ctx.lineTo(-Math.cos(0) * (this.size * 0.8), -Math.sin(0) * (this.size * 0.8));
+1803:         ctx.closePath();
+1804:         ctx.fill();
+1805:         ctx.stroke();
+1806:         
+1807:         ctx.restore();
+1808:       }
+1809:     }
+1810:     
+1811:     // 2. Draw segments from tail to neck
+1812:     if (this.segments.length > 0) {
+1813:       if (this.isPlayer && state.stage === 4) {
+1814:         // Flowing velvet cape for the knight player (3 segments)
+1815:         for (let i = this.segments.length - 1; i >= 0; i--) {
+1816:           let seg = this.segments[i];
+1817:           let segSize = this.size * (1.1 - (i / this.segments.length) * 0.35);
+1818:           
+1819:           ctx.fillStyle = this.capeColor || '#991b1b';
+1820:           ctx.beginPath();
+1821:           ctx.arc(seg.x, seg.y, segSize, 0, Math.PI * 2);
+1822:           ctx.fill();
+1823:           ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+1824:           ctx.lineWidth = 1.5;
+1825:           ctx.stroke();
+1826:         }
+1827:       } else if (!this.isPlayer) {
+1828:         // Draw normal bot segments (rats tail or guard armor folds)
+1829:         for (let i = this.segments.length - 1; i >= 0; i--) {
+1830:           let seg = this.segments[i];
+1831:           let segSize = this.size * (1 - (i / this.segments.length) * 0.45);
+1832:           
+1833:           ctx.fillStyle = this.color;
+1834:           ctx.beginPath();
+1835:           ctx.arc(seg.x, seg.y, segSize, 0, Math.PI * 2);
+1836:           ctx.fill();
+1837:           ctx.strokeStyle = '#050508';
+1838:           ctx.lineWidth = 1;
+1839:           ctx.stroke();
+1840:         }
+1841:       }
+1842:     }
+1843:     
+1844:     // 3. Draw head
+1845:     if (this.isPlayer) {
+1846:       ctx.save();
+1847:       ctx.translate(this.x, this.y);
+1848:       ctx.rotate(this.angle);
+1849:       
+1850:       let stage = state.stage || 1;
+1851:       
+1852:       if (stage === 1) {
+1853:         // ==========================================
+1854:         // STAGE 1: NOVICE / HUMAN RECRUIT
+1855:         // ==========================================
+1856:         // Torso: linen tunic
+1857:         ctx.fillStyle = '#78716c';
+1858:         ctx.beginPath();
+1859:         ctx.ellipse(0, 0, this.size * 1.15, this.size * 0.9, 0, 0, Math.PI * 2);
+1860:         ctx.fill();
+1861:         ctx.strokeStyle = '#0f172a';
+1862:         ctx.lineWidth = 1.5;
+1863:         ctx.stroke();
+1864: 
+1865:         // Arms
+1866:         ctx.fillStyle = '#fda4af'; // Skin color
+1867:         ctx.beginPath();
+1868:         ctx.arc(-this.size * 0.4, -this.size * 0.8, this.size * 0.4, 0, Math.PI * 2);
+1869:         ctx.arc(-this.size * 0.4, this.size * 0.8, this.size * 0.4, 0, Math.PI * 2);
+1870:         ctx.fill();
+1871:         ctx.stroke();
+1872: 
+1873:         // Head
+1874:         let hx = this.size * 0.4;
+1875:         ctx.fillStyle = '#fda4af'; // Skin
+1876:         ctx.beginPath();
+1877:         ctx.arc(hx, 0, this.size * 0.75, 0, Math.PI * 2);
+1878:         ctx.fill();
+1879:         ctx.stroke();
+1880: 
+1881:         // Hair
+1882:         ctx.fillStyle = '#1e293b'; // dark hair
+1883:         ctx.beginPath();
+1884:         ctx.arc(hx - 2, -this.size * 0.4, 3.5, 0, Math.PI * 2);
+1885:         ctx.arc(hx - 2, this.size * 0.4, 3.5, 0, Math.PI * 2);
+1886:         ctx.arc(hx - 4, 0, 4, 0, Math.PI * 2);
+1887:         ctx.fill();
+1888: 
+1889:         // Eyes
+1890:         ctx.fillStyle = '#0f172a';
+1891:         ctx.beginPath();
+1892:         ctx.arc(hx + 3, -this.size * 0.2, 1.5, 0, Math.PI * 2);
+1893:         ctx.arc(hx + 3, this.size * 0.2, 1.5, 0, Math.PI * 2);
+1894:         ctx.fill();
+1895: 
+1896:         // Weapon: Wooden branch/stick
+1897:         let wx = this.size * 0.6;
+1898:         let wy = this.size * 0.8;
+1899:         ctx.save();
+1900:         ctx.translate(wx, wy);
+1901:         let swinging = this.excitementLevel > 0.85;
+1902:         let wAngle = swinging ? Math.sin(Date.now() * 0.05) * 1.2 : 0;
+1903:         ctx.rotate(-0.25 + wAngle);
+1904:         
+1905:         ctx.strokeStyle = '#78350f';
+1906:         ctx.lineWidth = 2.5;
+1907:         ctx.beginPath();
+1908:         ctx.moveTo(0, 0);
+1909:         ctx.lineTo(13, 4);
+1910:         ctx.stroke();
+1911:         ctx.restore();
+1912: 
+1913:       } else if (stage === 2) {
+1914:         // ==========================================
+1915:         // STAGE 2: GOBLIN FORM
+1916:         // ==========================================
+1917:         // Torso: leather vest
+1918:         ctx.fillStyle = '#78350f';
+1919:         ctx.beginPath();
+1920:         ctx.ellipse(0, 0, this.size * 1.15, this.size * 0.9, 0, 0, Math.PI * 2);
+1921:         ctx.fill();
+1922:         ctx.strokeStyle = '#0f172a';
+1923:         ctx.lineWidth = 1.5;
+1924:         ctx.stroke();
+1925: 
+1926:         // Green arms
+1927:         ctx.fillStyle = '#22c55e';
+1928:         ctx.beginPath();
+1929:         ctx.arc(-this.size * 0.4, -this.size * 0.8, this.size * 0.4, 0, Math.PI * 2);
+1930:         ctx.arc(-this.size * 0.4, this.size * 0.8, this.size * 0.4, 0, Math.PI * 2);
+1931:         ctx.fill();
+1932:         ctx.stroke();
+1933: 
+1934:         // Head (green skin)
+1935:         let hx = this.size * 0.4;
+1936:         ctx.fillStyle = '#22c55e';
+1937:         ctx.beginPath();
+1938:         ctx.arc(hx, 0, this.size * 0.75, 0, Math.PI * 2);
+1939:         ctx.fill();
+1940:         ctx.stroke();
+1941: 
+1942:         // Long pointed ears (using this.earsLength from neural morph)
+1943:         let earL = this.earsLength || 12;
+1944:         ctx.fillStyle = '#16a34a';
+1945:         ctx.beginPath();
+1946:         // Top ear
+1947:         ctx.moveTo(hx - 2, -this.size * 0.45);
+1948:         ctx.lineTo(hx - earL, -this.size * 0.85);
+1949:         ctx.lineTo(hx + 1, -this.size * 0.25);
+1950:         ctx.closePath();
+1951:         ctx.fill();
+1952:         ctx.stroke();
+1953:         // Bottom ear
+1954:         ctx.beginPath();
+1955:         ctx.moveTo(hx - 2, this.size * 0.45);
+1956:         ctx.lineTo(hx - earL, this.size * 0.85);
+1957:         ctx.lineTo(hx + 1, this.size * 0.25);
+1958:         ctx.closePath();
+1959:         ctx.fill();
+1960:         ctx.stroke();
+1961: 
+1962:         // Narrow glowing yellow/orange eyes
+1963:         ctx.fillStyle = '#facc15';
+1964:         ctx.beginPath();
+1965:         ctx.arc(hx + 4, -this.size * 0.2, 2.0, 0, Math.PI * 2);
+1966:         ctx.arc(hx + 4, this.size * 0.2, 2.0, 0, Math.PI * 2);
+1967:         ctx.fill();
+1968:         ctx.fillStyle = '#ef4444'; // red pupil
+1969:         ctx.beginPath();
+1970:         ctx.arc(hx + 5, -this.size * 0.2, 0.8, 0, Math.PI * 2);
+1971:         ctx.arc(hx + 5, this.size * 0.2, 0.8, 0, Math.PI * 2);
+1972:         ctx.fill();
+1973: 
+1974:         // Weapon: Goblin Dagger
+1975:         let wx = this.size * 0.6;
+1976:         let wy = this.size * 0.8;
+1977:         ctx.save();
+1978:         ctx.translate(wx, wy);
+1979:         let swinging = this.excitementLevel > 0.85;
+1980:         let wAngle = swinging ? Math.sin(Date.now() * 0.05) * 1.2 : 0;
+1981:         ctx.rotate(-0.25 + wAngle);
+1982: 
+1983:         ctx.strokeStyle = '#94a3b8'; // steel blade
+1984:         ctx.lineWidth = 2.5;
+1985:         ctx.beginPath();
+1986:         ctx.moveTo(0, 0);
+1987:         ctx.lineTo(16, 5);
+1988:         ctx.stroke();
+1989:         // Hilt
+1990:         ctx.strokeStyle = '#d97706';
+1991:         ctx.lineWidth = 2.0;
+1992:         ctx.beginPath();
+1993:         ctx.moveTo(2, -3);
+1994:         ctx.lineTo(1, 3);
+1995:         ctx.stroke();
+1996:         ctx.restore();
+1997: 
+1998:       } else if (stage === 3) {
+1999:         // ==========================================
+2000:         // STAGE 3: BEASTMAN
+2001:         // ==========================================
+2002:         // Torso: covered in fur (using beastFurColor)
+2003:         ctx.fillStyle = this.beastFurColor || '#b45309';
+2004:         ctx.beginPath();
+2005:         ctx.ellipse(0, 0, this.size * 1.15, this.size * 0.9, 0, 0, Math.PI * 2);
+2006:         ctx.fill();
+2007:         ctx.strokeStyle = '#0f172a';
+2008:         ctx.lineWidth = 1.5;
+2009:         ctx.stroke();
+2010: 
+2011:         // Fur details on torso
+2012:         ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+2013:         ctx.lineWidth = 1.0;
+2014:         ctx.beginPath();
+2015:         ctx.moveTo(-this.size * 0.4, -this.size * 0.3);
+2016:         ctx.lineTo(-this.size * 0.1, -this.size * 0.4);
+2017:         ctx.moveTo(-this.size * 0.5, 0);
+2018:         ctx.lineTo(-this.size * 0.2, -this.size * 0.1);
+2019:         ctx.moveTo(-this.size * 0.4, this.size * 0.3);
+2020:         ctx.lineTo(-this.size * 0.1, this.size * 0.4);
+2021:         ctx.stroke();
+2022: 
+2023:         // Beast clawed arms
+2024:         ctx.fillStyle = this.beastFurColor || '#b45309';
+2025:         ctx.beginPath();
+2026:         ctx.arc(-this.size * 0.4, -this.size * 0.8, this.size * 0.45, 0, Math.PI * 2);
+2027:         ctx.arc(-this.size * 0.4, this.size * 0.8, this.size * 0.45, 0, Math.PI * 2);
+2028:         ctx.fill();
+2029:         ctx.stroke();
+2030: 
+2031:         // Head (furry)
+2032:         let hx = this.size * 0.4;
+2033:         ctx.fillStyle = this.beastFurColor || '#b45309';
+2034:         ctx.beginPath();
+2035:         ctx.arc(hx, 0, this.size * 0.75, 0, Math.PI * 2);
+2036:         ctx.fill();
+2037:         ctx.stroke();
+2038: 
+2039:         // Wolf Ears (pointed up/back)
+2040:         ctx.fillStyle = '#78350f';
+2041:         ctx.beginPath();
+2042:         ctx.moveTo(hx - this.size * 0.3, -this.size * 0.5);
+2043:         ctx.lineTo(hx - this.size * 0.8, -this.size * 0.9);
+2044:         ctx.lineTo(hx - this.size * 0.1, -this.size * 0.5);
+2045:         ctx.closePath();
+2046:         ctx.fill();
+2047:         ctx.stroke();
+2048: 
+2049:         ctx.beginPath();
+2050:         ctx.moveTo(hx - this.size * 0.3, this.size * 0.5);
+2051:         ctx.lineTo(hx - this.size * 0.8, this.size * 0.9);
+2052:         ctx.lineTo(hx - this.size * 0.1, this.size * 0.5);
+2053:         ctx.closePath();
+2054:         ctx.fill();
+2055:         ctx.stroke();
+2056: 
+2057:         // Glowing red eyes
+2058:         ctx.fillStyle = '#ef4444';
+2059:         ctx.beginPath();
+2060:         ctx.arc(hx + 3, -this.size * 0.25, 2.0, 0, Math.PI * 2);
+2061:         ctx.arc(hx + 3, this.size * 0.25, 2.0, 0, Math.PI * 2);
+2062:         ctx.fill();
+2063: 
+2064:         // Snout with fangs
+2065:         ctx.fillStyle = '#ffffff';
+2066:         ctx.beginPath();
+2067:         ctx.arc(hx + 6, -this.size * 0.1, 1.2, 0, Math.PI * 2);
+2068:         ctx.arc(hx + 6, this.size * 0.1, 1.2, 0, Math.PI * 2);
+2069:         ctx.fill();
+2070: 
+2071:         // Weapon: Savage longsword
+2072:         let wx = this.size * 0.6;
+2073:         let wy = this.size * 0.8;
+2074:         ctx.save();
+2075:         ctx.translate(wx, wy);
+2076:         let swinging = this.excitementLevel > 0.85;
+2077:         let wAngle = swinging ? Math.sin(Date.now() * 0.05) * 1.2 : 0;
+2078:         ctx.rotate(-0.25 + wAngle);
+2079: 
+2080:         ctx.strokeStyle = '#e2e8f0'; // steel
+2081:         ctx.lineWidth = 3.0;
+2082:         ctx.beginPath();
+2083:         ctx.moveTo(0, 0);
+2084:         ctx.lineTo(26, 6);
+2085:         ctx.stroke();
+2086:         // Crossguard
+2087:         ctx.strokeStyle = '#475569';
+2088:         ctx.lineWidth = 2.0;
+2089:         ctx.beginPath();
+2090:         ctx.moveTo(3, -5);
+2091:         ctx.lineTo(1, 5);
+2092:         ctx.stroke();
+2093:         ctx.restore();
+2094: 
+2095:       } else {
+2096:         // ==========================================
+2097:         // STAGE 4: KNIGHT / PALADIN (HUMAN)
+2098:         // ==========================================
+2099:         // Torso: steel/gold armor plate
+2100:         ctx.fillStyle = '#cbd5e1'; // polished steel torso
+2101:         ctx.beginPath();
+2102:         ctx.ellipse(0, 0, this.size * 1.15, this.size * 0.9, 0, 0, Math.PI * 2);
+2103:         ctx.fill();
+2104:         ctx.strokeStyle = '#475569';
+2105:         ctx.lineWidth = 1.8;
+2106:         ctx.stroke();
+2107: 
+2108:         // Spaulders (shoulder guards)
+2109:         ctx.fillStyle = '#94a3b8';
+2110:         ctx.beginPath();
+2111:         ctx.arc(-this.size * 0.5, -this.size * 0.85, this.size * 0.45, 0, Math.PI * 2);
+2112:         ctx.arc(-this.size * 0.5, this.size * 0.85, this.size * 0.45, 0, Math.PI * 2);
+2113:         ctx.fill();
+2114:         ctx.stroke();
+2115: 
+2116:         // Head (helmet)
+2117:         let hx = this.size * 0.4;
+2118:         ctx.fillStyle = '#94a3b8';
+2119:         ctx.beginPath();
+2120:         ctx.arc(hx, 0, this.size * 0.75, 0, Math.PI * 2);
+2121:         ctx.fill();
+2122:         ctx.stroke();
+2123: 
+2124:         // Visor Screen
+2125:         ctx.fillStyle = '#0f172a'; // dark slot
+2126:         ctx.fillRect(hx + this.size * 0.2, -this.size * 0.35, this.size * 0.2, this.size * 0.7);
+2127: 
+2128:         // Glowing visor slit (uses glowColor from neural morph!)
+2129:         let alert = this.alertLevel || 0;
+2130:         ctx.fillStyle = alert > 0.4 ? '#ef4444' : (this.glowColor || '#22d3ee');
+2131:         ctx.fillRect(hx + this.size * 0.28, -this.size * 0.25, 2.5, this.size * 0.5);
+2132: 
+2133:         // Plume
+2134:         ctx.fillStyle = '#ef4444'; // Crimson plume
+2135:         ctx.beginPath();
+2136:         ctx.moveTo(hx - this.size * 0.4, 0);
+2137:         ctx.quadraticCurveTo(hx - this.size * 1.2, -this.size * 0.6, hx - this.size * 1.6, -this.size * 0.3);
+2138:         ctx.quadraticCurveTo(hx - this.size * 1.0, 0, hx - this.size * 0.4, 0);
+2139:         ctx.fill();
+2140: 
+2141:         // Shield (Knight Shield)
+2142:         ctx.fillStyle = '#0f172a';
+2143:         ctx.strokeStyle = '#e2e8f0';
+2144:         ctx.lineWidth = 1.8;
+2145:         let shx = -this.size * 0.2;
+2146:         let shy = -this.size * 0.95;
+2147:         ctx.save();
+2148:         ctx.translate(shx, shy);
+2149:         ctx.rotate(0.35);
+2150:         ctx.beginPath();
+2151:         ctx.moveTo(-7, -4);
+2152:         ctx.lineTo(7, -4);
+2153:         ctx.lineTo(7, 4);
+2154:         ctx.quadraticCurveTo(0, 12, -7, 4);
+2155:         ctx.closePath();
+2156:         ctx.fill();
+2157:         ctx.stroke();
+2158:         // Shield cross
+2159:         ctx.strokeStyle = '#ef4444';
+2160:         ctx.lineWidth = 1.5;
+2161:         ctx.beginPath();
+2162:         ctx.moveTo(0, -3);
+2163:         ctx.lineTo(0, 7);
+2164:         ctx.moveTo(-4, 1);
+2165:         ctx.lineTo(4, 1);
+2166:         ctx.stroke();
+2167:         ctx.restore(); // shield save
+2168: 
+2169:         // Greatsword (right hand)
+2170:         let gwx = this.size * 0.55;
+2171:         let gwy = this.size * 0.9;
+2172:         ctx.save();
+2173:         ctx.translate(gwx, gwy);
+2174:         let swinging4 = this.excitementLevel > 0.85;
+2175:         let kwa = swinging4 ? Math.sin(Date.now() * 0.06) * 1.3 : 0;
+2176:         ctx.rotate(-0.2 + kwa);
+2177:         ctx.strokeStyle = '#f59e0b';
+2178:         ctx.lineWidth = 4;
+2179:         ctx.shadowBlur = 10;
+2180:         ctx.shadowColor = '#f97316';
+2181:         ctx.beginPath();
+2182:         ctx.moveTo(0, 0);
+2183:         ctx.lineTo(30, 7);
+2184:         ctx.stroke();
+2185:         ctx.strokeStyle = '#facc15';
+2186:         ctx.lineWidth = 2.5;
+2187:         ctx.beginPath();
+2188:         ctx.moveTo(4, -6);
+2189:         ctx.lineTo(2, 6);
+2190:         ctx.stroke();
+2191:         ctx.shadowBlur = 0;
+2192:         ctx.restore();
+2193:       } // end stage 4
+2194: 
+2195:       ctx.restore(); // close player translate/rotate
+2196: 
+2197:     } else if (this.type === 'boss') {
+2198:       // ==========================================
+2199:       // BOSS DRAWING (scales with state.level)
+2200:       // ==========================================
+2201:       let lvl = (typeof state !== 'undefined' && state.level) ? state.level : 1;
+2202:       let bossPhase = Math.min(lvl, 5); // visual phase caps at 5
+2203: 
+2204:       // --- Shared glow aura ---
+2205:       let bossGlow = 50 + Math.sin(Date.now() * 0.008) * 10;
+2206:       let bossAuraColor = bossPhase <= 1 ? 'rgba(245,158,11,' :
+2207:                           bossPhase === 2 ? 'rgba(168,85,247,' :
+2208:                           bossPhase === 3 ? 'rgba(239,68,68,' :
+2209:                           bossPhase === 4 ? 'rgba(6,182,212,' : 'rgba(255,255,255,';
+2210:       let grad = ctx.createRadialGradient(this.x, this.y, 2, this.x, this.y, bossGlow);
+2211:       grad.addColorStop(0, bossAuraColor + '0.35)');
+2212:       grad.addColorStop(1, bossAuraColor + '0.0)');
+2213:       ctx.fillStyle = grad;
+2214:       ctx.beginPath();
+2215:       ctx.arc(this.x, this.y, bossGlow, 0, Math.PI * 2);
+2216:       ctx.fill();
+2217: 
+2218:       if (bossPhase === 1) {
+2219:         // KNIGHT KING
+2220:         ctx.fillStyle = '#b45309';
+2221:         ctx.beginPath();
+2222:         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+2223:         ctx.fill();
+2224:         ctx.strokeStyle = '#f59e0b';
+2225:         ctx.lineWidth = 2.5;
+2226:         ctx.stroke();
+2227:         // Crown
+2228:         ctx.fillStyle = '#facc15';
+2229:         ctx.beginPath();
+2230:         let cx = this.x, cy = this.y - this.size + 4;
+2231:         ctx.moveTo(cx - 10, cy); ctx.lineTo(cx - 12, cy - 10);
+2232:         ctx.lineTo(cx - 5, cy - 4); ctx.lineTo(cx, cy - 12);
+2233:         ctx.lineTo(cx + 5, cy - 4); ctx.lineTo(cx + 12, cy - 10);
+2234:         ctx.lineTo(cx + 10, cy); ctx.closePath(); ctx.fill();
+2235:         // Eyes
+2236:         ctx.fillStyle = '#ef4444';
+2237:         ctx.beginPath();
+2238:         ctx.arc(this.x + Math.cos(this.angle + 0.25) * this.size * 0.7, this.y + Math.sin(this.angle + 0.25) * this.size * 0.7, 2.5, 0, Math.PI * 2);
+2239:         ctx.arc(this.x + Math.cos(this.angle - 0.25) * this.size * 0.7, this.y + Math.sin(this.angle - 0.25) * this.size * 0.7, 2.5, 0, Math.PI * 2);
+2240:         ctx.fill();
+2241:         // Sword
+2242:         if (this.spinActive) {
+2243:           let sa = (Date.now() * 0.02) % (Math.PI * 2);
+2244:           ctx.strokeStyle = '#f97316'; ctx.lineWidth = 5;
+2245:           ctx.shadowBlur = 12; ctx.shadowColor = '#ef4444';
+2246:           ctx.beginPath();
+2247:           ctx.moveTo(this.x, this.y);
+2248:           ctx.lineTo(this.x + Math.cos(sa) * 55, this.y + Math.sin(sa) * 55);
+2249:           ctx.stroke();
+2250:           ctx.shadowBlur = 0;
+2251:           ctx.fillStyle = 'rgba(239,68,68,0.12)';
+2252:           ctx.beginPath(); ctx.arc(this.x, this.y, 55, 0, Math.PI * 2); ctx.fill();
+2253:         } else {
+2254:           let swx = this.x + Math.cos(this.angle + 1.2) * this.size * 0.9;
+2255:           let swy = this.y + Math.sin(this.angle + 1.2) * this.size * 0.9;
+2256:           ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 4;
+2257:           ctx.beginPath();
+2258:           ctx.moveTo(swx, swy);
+2259:           ctx.lineTo(swx + Math.cos(this.angle + 0.4) * 24, swy + Math.sin(this.angle + 0.4) * 24);
+2260:           ctx.stroke();
+2261:         }
+2262: 
+2263:       } else if (bossPhase === 2) {
+2264:         // VOID WARLOCK
+2265:         ctx.fillStyle = '#3b0764';
+2266:         ctx.beginPath();
+2267:         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+2268:         ctx.fill();
+2269:         ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2;
+2270:         ctx.shadowBlur = 12; ctx.shadowColor = '#a855f7'; ctx.stroke(); ctx.shadowBlur = 0;
+2271:         // Robe collar
+2272:         ctx.strokeStyle = '#c084fc'; ctx.lineWidth = 3;
+2273:         ctx.beginPath();
+2274:         ctx.arc(this.x, this.y, this.size * 0.55, this.angle - 0.8, this.angle + 0.8);
+2275:         ctx.stroke();
+2276:         // Eyes
+2277:         ctx.fillStyle = '#e879f9';
+2278:         ctx.shadowBlur = 8; ctx.shadowColor = '#e879f9';
+2279:         ctx.beginPath();
+2280:         ctx.arc(this.x + Math.cos(this.angle + 0.25) * this.size * 0.7, this.y + Math.sin(this.angle + 0.25) * this.size * 0.7, 3, 0, Math.PI * 2);
+2281:         ctx.arc(this.x + Math.cos(this.angle - 0.25) * this.size * 0.7, this.y + Math.sin(this.angle - 0.25) * this.size * 0.7, 3, 0, Math.PI * 2);
+2282:         ctx.fill(); ctx.shadowBlur = 0;
+2283:         // Staff
+2284:         let stx = this.x + Math.cos(this.angle + 1.1) * this.size;
+2285:         let sty = this.y + Math.sin(this.angle + 1.1) * this.size;
+2286:         ctx.strokeStyle = '#78350f'; ctx.lineWidth = 2.5;
+2287:         ctx.beginPath(); ctx.moveTo(stx, sty);
+2288:         ctx.lineTo(stx + Math.cos(this.angle + 0.4) * 20, sty + Math.sin(this.angle + 0.4) * 20);
+2289:         ctx.stroke();
+2290:         ctx.fillStyle = '#c084fc'; ctx.shadowBlur = 10; ctx.shadowColor = '#c084fc';
+2291:         ctx.beginPath();
+2292:         ctx.arc(stx + Math.cos(this.angle + 0.4) * 20, sty + Math.sin(this.angle + 0.4) * 20, 4.5, 0, Math.PI * 2);
+2293:         ctx.fill(); ctx.shadowBlur = 0;
+2294: 
+2295:       } else if (bossPhase === 3) {
+2296:         // ALCHEMICAL GOLEM
+2297:         ctx.fillStyle = '#57534e';
+2298:         ctx.beginPath();
+2299:         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+2300:         ctx.fill();
+2301:         ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2.5;
+2302:         ctx.shadowBlur = 6; ctx.shadowColor = '#ef4444';
+2303:         if (this.spinActive) { ctx.lineWidth = 5; ctx.shadowBlur = 18; }
+2304:         ctx.stroke(); ctx.shadowBlur = 0;
+2305:         // Stone texture cracks
+2306:         ctx.strokeStyle = '#292524'; ctx.lineWidth = 1.2;
+2307:         let cr = this.size;
+2308:         ctx.beginPath();
+2309:         ctx.moveTo(this.x - cr*0.3, this.y - cr*0.5); ctx.lineTo(this.x + cr*0.1, this.y + cr*0.2);
+2310:         ctx.moveTo(this.x + cr*0.2, this.y - cr*0.6); ctx.lineTo(this.x - cr*0.1, this.y + cr*0.3);
+2311:         ctx.stroke();
+2312:         // Core gem
+2313:         ctx.fillStyle = this.spinActive ? '#f97316' : '#22d3ee';
+2314:         ctx.shadowBlur = 12; ctx.shadowColor = this.spinActive ? '#f97316' : '#22d3ee';
+2315:         ctx.beginPath(); ctx.arc(this.x, this.y, 6, 0, Math.PI * 2); ctx.fill();
+2316:         ctx.shadowBlur = 0;
+2317: 
+2318:       } else if (bossPhase === 4) {
+2319:         // SHADOW LICH
+2320:         ctx.fillStyle = '#0c0a09';
+2321:         ctx.beginPath();
+2322:         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+2323:         ctx.fill();
+2324:         ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2;
+2325:         ctx.shadowBlur = 15; ctx.shadowColor = '#06b6d4'; ctx.stroke(); ctx.shadowBlur = 0;
+2326:         // Orbiting bones
+2327:         let orbit = (Date.now() * 0.003) % (Math.PI * 2);
+2328:         for (let i = 0; i < 3; i++) {
+2329:           let oa = orbit + i * (Math.PI * 2 / 3);
+2330:           ctx.fillStyle = '#e2e8f0';
+2331:           ctx.beginPath();
+2332:           ctx.arc(this.x + Math.cos(oa) * (this.size + 12), this.y + Math.sin(oa) * (this.size + 12), 3.5, 0, Math.PI * 2);
+2333:           ctx.fill();
+2334:         }
+2335:         // Glowing eyes
+2336:         ctx.fillStyle = '#22d3ee';
+2337:         ctx.shadowBlur = 10; ctx.shadowColor = '#22d3ee';
+2338:         ctx.beginPath();
+2339:         ctx.arc(this.x + Math.cos(this.angle + 0.25) * this.size * 0.7, this.y + Math.sin(this.angle + 0.25) * this.size * 0.7, 3.5, 0, Math.PI * 2);
+2340:         ctx.arc(this.x + Math.cos(this.angle - 0.25) * this.size * 0.7, this.y + Math.sin(this.angle - 0.25) * this.size * 0.7, 3.5, 0, Math.PI * 2);
+2341:         ctx.fill(); ctx.shadowBlur = 0;
+2342: 
+2343:       } else {
+2344:         // PHASE 5+: DRAGON OVERLORD
+2345:         let dScale = 1 + (bossPhase - 5) * 0.06;
+2346:         ctx.fillStyle = '#450a0a';
+2347:         ctx.beginPath();
+2348:         ctx.arc(this.x, this.y, this.size * dScale, 0, Math.PI * 2);
+2349:         ctx.fill();
+2350:         ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 3;
+2351:         ctx.shadowBlur = 20; ctx.shadowColor = '#ef4444'; ctx.stroke(); ctx.shadowBlur = 0;
+2352:         // Wings hint
+2353:         ctx.fillStyle = 'rgba(127,29,29,0.6)';
+2354:         let wa = (Date.now() * 0.004) % (Math.PI * 2);
+2355:         for (let s of [-1, 1]) {
+2356:           ctx.beginPath();
+2357:           ctx.ellipse(this.x + s * this.size * 1.2, this.y, this.size * 0.8 + Math.sin(wa) * 4, this.size * 0.35, s * 0.7, 0, Math.PI * 2);
+2358:           ctx.fill();
+2359:         }
+2360:         ctx.fillStyle = '#fbbf24';
+2361:         ctx.shadowBlur = 8; ctx.shadowColor = '#fbbf24';
+2362:         ctx.beginPath();
+2363:         ctx.arc(this.x + Math.cos(this.angle + 0.25) * this.size * 0.7, this.y + Math.sin(this.angle + 0.25) * this.size * 0.7, 4, 0, Math.PI * 2);
+2364:         ctx.arc(this.x + Math.cos(this.angle - 0.25) * this.size * 0.7, this.y + Math.sin(this.angle - 0.25) * this.size * 0.7, 4, 0, Math.PI * 2);
+2365:         ctx.fill(); ctx.shadowBlur = 0;
+2366:       }
+2367: 
+2368:       // Boss health bar
+2369:       let bBarW = this.size * 3.5;
+2370:       let bBarH = 6;
+2371:       let bBx = this.x - bBarW / 2;
+2372:       let bBy = this.y - this.size - 16;
+2373:       ctx.fillStyle = 'rgba(0,0,0,0.8)';
+2374:       ctx.fillRect(bBx, bBy, bBarW, bBarH);
+2375:       let bHp = Math.max(0, this.health / this.maxHealth);
+2376:       let bColor = bossPhase <= 1 ? '#f59e0b' : bossPhase === 2 ? '#a855f7' : bossPhase === 3 ? '#ef4444' : bossPhase === 4 ? '#06b6d4' : '#dc2626';
+2377:       ctx.fillStyle = bColor;
+2378:       ctx.fillRect(bBx, bBy, bBarW * bHp, bBarH);
+2379:       ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 0.5;
+2380:       ctx.strokeRect(bBx, bBy, bBarW, bBarH);
+2381: 
+2382:       // Boss name label
+2383:       let bNames = ['Р С‹С†Р°СЂСЊ-РљРѕСЂРѕР»СЊ', 'Р’Р»Р°РґС‹РєР° РџСѓСЃС‚РѕС‚С‹', 'РђР»С…РёРјРёС‡РµСЃРєРёР№ Р“РѕР»РµРј', 'Р’Р»Р°РґС‹РєР° РўРµРЅРµР№', 'РџРѕРІРµР»РёС‚РµР»СЊ Р”СЂР°РєРѕРЅРѕРІ'];
+2384:       ctx.fillStyle = bColor;
+2385:       ctx.font = 'bold 10px Montserrat';
+2386:       ctx.textAlign = 'center';
+2387:       ctx.shadowBlur = 5; ctx.shadowColor = bColor;
+2388:       ctx.fillText((bNames[bossPhase - 1] || bNames[4]) + ' [РЈСЂ.' + lvl + ']', this.x, bBy - 3);
+2389:       ctx.shadowBlur = 0;
+2390: 
+2391:       // Rage warning
+2392:       if (this.rageWarnTimer > 0) {
+2393:         ctx.fillStyle = '#ef4444';
+2394:         ctx.font = 'bold 13px Montserrat';
+2395:         ctx.textAlign = 'center';
+2396:         ctx.shadowBlur = 8; ctx.shadowColor = '#ef4444';
+2397:         let warnText = lvl >= 4 ? '!! РўР•Р›Р•РџРћР Рў !!' : lvl >= 3 ? '! РўРђР РђРќ !' : '! РљР РЈР“РћР’РђРЇ РђРўРђРљРђ !';
+2398:         ctx.fillText(warnText, this.x, this.y - this.size - 22);
+2399:         ctx.shadowBlur = 0;
+2400:       }
+2401: 
+2402:     } else if (this.type === 'guard') {
+2403:       // Knight Model
+2404:       // Body Armor
+2405:       ctx.fillStyle = '#334155';
+2406:       ctx.beginPath();
+2407:       ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+2408:       ctx.fill();
+2409:       
+2410:       // Iron Visor line
+2411:       ctx.strokeStyle = '#e2e8f0';
+2412:       ctx.lineWidth = 3;
+2413:       ctx.beginPath();
+2414:       ctx.moveTo(this.x + Math.cos(this.angle + 0.5) * this.size, this.y + Math.sin(this.angle + 0.5) * this.size);
+2415:       ctx.lineTo(this.x + Math.cos(this.angle - 0.5) * this.size, this.y + Math.sin(this.angle - 0.5) * this.size);
+2416:       ctx.stroke();
+2417:       
+2418:       // Draw Shield on left side
+2419:       ctx.fillStyle = '#ef4444';
+2420:       ctx.strokeStyle = '#e2e8f0';
+2421:       ctx.lineWidth = 1.5;
+2422:       let sx = this.x + Math.cos(this.angle - 1.2) * (this.size * 0.9);
+2423:       let sy = this.y + Math.sin(this.angle - 1.2) * (this.size * 0.9);
+2424:       ctx.beginPath();
+2425:       ctx.arc(sx, sy, 5, 0, Math.PI * 2);
+2426:       ctx.fill();
+2427:       ctx.stroke();
+2428:       
+2429:       // Draw Sword on right side (slashes when attacking)
+2430:       ctx.strokeStyle = '#94a3b8';
+2431:       ctx.lineWidth = 2.5;
+2432:       let swx = this.x + Math.cos(this.angle + 1.2) * (this.size * 0.9);
+2433:       let swy = this.y + Math.sin(this.angle + 1.2) * (this.size * 0.9);
+2434:       ctx.beginPath();
+2435:       ctx.moveTo(swx, swy);
+2436:       ctx.lineTo(swx + Math.cos(this.angle + 0.4) * 14, swy + Math.sin(this.angle + 0.4) * 14);
+2437:       ctx.stroke();
+2438:       
+2439:       // Red eyes inside visor
+2440:       ctx.fillStyle = '#ef4444';
+2441:       ctx.beginPath();
+2442:       ctx.arc(this.x + Math.cos(this.angle + 0.25) * (this.size*0.75), this.y + Math.sin(this.angle + 0.25) * (this.size*0.75), 1.5, 0, Math.PI * 2);
+2443:       ctx.arc(this.x + Math.cos(this.angle - 0.25) * (this.size*0.75), this.y + Math.sin(this.angle - 0.25) * (this.size*0.75), 1.5, 0, Math.PI * 2);
+2444:       ctx.fill();
+2445:     } else if (this.type === 'mage') {
+2446:       // Mage Model (Purple robe, wizard staff)
+2447:       ctx.fillStyle = '#581c87'; // Dark purple robe
+2448:       ctx.beginPath();
+2449:       ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+2450:       ctx.fill();
+2451:       ctx.strokeStyle = '#c084fc'; // Purple highlight border
+2452:       ctx.lineWidth = 1.5;
+2453:       ctx.stroke();
+2454:       
+2455:       // Glowing purple eyes
+2456:       ctx.fillStyle = '#f3e8ff';
+2457:       ctx.beginPath();
+2458:       ctx.arc(this.x + Math.cos(this.angle + 0.25) * (this.size*0.7), this.y + Math.sin(this.angle + 0.25) * (this.size*0.7), 2.0, 0, Math.PI * 2);
+2459:       ctx.arc(this.x + Math.cos(this.angle - 0.25) * (this.size*0.7), this.y + Math.sin(this.angle - 0.25) * (this.size*0.7), 2.0, 0, Math.PI * 2);
+2460:       ctx.fill();
+2461:       
+2462:       // Wizard staff on right side
+2463:       ctx.strokeStyle = '#78350f'; // wood staff
+2464:       ctx.lineWidth = 2.5;
+2465:       let stx = this.x + Math.cos(this.angle + 1.2) * (this.size * 0.9);
+2466:       let sty = this.y + Math.sin(this.angle + 1.2) * (this.size * 0.9);
+2467:       ctx.beginPath();
+2468:       ctx.moveTo(stx, sty);
+2469:       ctx.lineTo(stx + Math.cos(this.angle + 0.4) * 18, sty + Math.sin(this.angle + 0.4) * 18);
+2470:       ctx.stroke();
+2471:       
+2472:       // Staff crystal
+2473:       let crystalAngle = this.angle + 0.4;
+2474:       let cx = stx + Math.cos(crystalAngle) * 18;
+2475:       let cy = sty + Math.sin(crystalAngle) * 18;
+2476:       ctx.fillStyle = '#a855f7'; // magical purple crystal
+2477:       ctx.shadowBlur = 8;
+2478:       ctx.shadowColor = '#c084fc';
+2479:       ctx.beginPath();
+2480:       ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+2481:       ctx.fill();
+2482:       ctx.shadowBlur = 0;
+2483:     } else if (this.type === 'bomber') {
+2484:       // Bomber Model (Toxic green rat with a ticking fuse bomb on its back)
+2485:       ctx.fillStyle = '#14532d'; // Dark green rat body
+2486:       ctx.beginPath();
+2487:       ctx.ellipse(this.x, this.y, this.size*1.3, this.size, this.angle, 0, Math.PI*2);
+2488:       ctx.fill();
+2489:       ctx.strokeStyle = '#22c55e'; // neon green border
+2490:       ctx.lineWidth = 1.5;
+2491:       ctx.stroke();
+2492:       
+2493:       // Glowing toxic green eyes
+2494:       ctx.fillStyle = '#22c55e';
+2495:       ctx.beginPath();
+2496:       ctx.arc(this.x + Math.cos(this.angle + 0.35) * (this.size*1.0), this.y + Math.sin(this.angle + 0.35) * (this.size*1.0), 1.8, 0, Math.PI * 2);
+2497:       ctx.arc(this.x + Math.cos(this.angle - 0.35) * (this.size*1.0), this.y + Math.sin(this.angle - 0.35) * (this.size*1.0), 1.8, 0, Math.PI * 2);
+2498:       ctx.fill();
+2499:       
+2500:       // Bomb fuse on its back
+2501:       ctx.fillStyle = '#0f172a'; // Slate bomb casing
+2502:       ctx.strokeStyle = '#ef4444'; // Red glowing details
+2503:       ctx.lineWidth = 1.0;
+2504:       let bx = this.x - Math.cos(this.angle) * (this.size * 0.7);
+2505:       let by = this.y - Math.sin(this.angle) * (this.size * 0.7);
+2506:       ctx.beginPath();
+2507:       ctx.arc(bx, by, this.size * 0.75, 0, Math.PI * 2);
+2508:       ctx.fill();
+2509:       ctx.stroke();
+2510:       
+2511:       // Glowing fuse wire
+2512:       ctx.strokeStyle = '#e2e8f0';
+2513:       ctx.lineWidth = 1.5;
+2514:       ctx.beginPath();
+2515:       ctx.moveTo(bx, by);
+2516:       let fuseLen = this.size * 0.9;
+2517:       let fuseAngle = this.angle + Math.PI + Math.sin(Date.now() * 0.02) * 0.35;
+2518:       ctx.lineTo(bx + Math.cos(fuseAngle) * fuseLen, by + Math.sin(fuseAngle) * fuseLen);
+2519:       ctx.stroke();
+2520:       
+2521:       // Spark
+2522:       ctx.fillStyle = '#facc15';
+2523:       ctx.beginPath();
+2524:       ctx.arc(bx + Math.cos(fuseAngle) * fuseLen, by + Math.sin(fuseAngle) * fuseLen, 2.0 + Math.sin(Date.now() * 0.05) * 1.0, 0, Math.PI * 2);
+2525:       ctx.fill();
+2526:     } else if (this.type === 'rat') {
+2527:       // Rat Model
+2528:       ctx.fillStyle = this.color;
+2529:       ctx.beginPath();
+2530:       ctx.ellipse(this.x, this.y, this.size*1.3, this.size, this.angle, 0, Math.PI*2);
+2531:       ctx.fill();
+2532:       
+2533:       // Little pink ears
+2534:       ctx.fillStyle = '#fda4af';
+2535:       let ex1 = this.x + Math.cos(this.angle - 0.8) * (this.size * 0.7);
+2536:       let ey1 = this.y + Math.sin(this.angle - 0.8) * (this.size * 0.7);
+2537:       let ex2 = this.x + Math.cos(this.angle + 0.8) * (this.size * 0.7);
+2538:       let ey2 = this.y + Math.sin(this.angle + 0.8) * (this.size * 0.7);
+2539:       ctx.beginPath();
+2540:       ctx.arc(ex1, ey1, 2.5, 0, Math.PI*2);
+2541:       ctx.arc(ex2, ey2, 2.5, 0, Math.PI*2);
+2542:       ctx.fill();
+2543:     } else if (this.type === 'goblin') {
+2544:       // Goblin Enemy Model
+2545:       ctx.save();
+2546:       ctx.translate(this.x, this.y);
+2547:       ctx.rotate(this.angle);
+2548: 
+2549:       // Body (ragged clothes)
+2550:       ctx.fillStyle = '#78350f';
+2551:       ctx.beginPath();
+2552:       ctx.ellipse(0, 0, this.size * 1.1, this.size * 0.85, 0, 0, Math.PI * 2);
+2553:       ctx.fill();
+2554:       ctx.strokeStyle = '#050508';
+2555:       ctx.lineWidth = 1;
+2556:       ctx.stroke();
+2557: 
+2558:       // Head
+2559:       ctx.fillStyle = '#22c55e'; // Goblin green skin
+2560:       ctx.beginPath();
+2561:       ctx.arc(this.size * 0.4, 0, this.size * 0.7, 0, Math.PI * 2);
+2562:       ctx.fill();
+2563:       ctx.stroke();
+2564: 
+2565:       // Pointed ears
+2566:       ctx.fillStyle = '#16a34a';
+2567:       ctx.beginPath();
+2568:       ctx.moveTo(-this.size * 0.1, -this.size * 0.55);
+2569:       ctx.lineTo(-this.size * 0.6, -this.size * 0.95);
+2570:       ctx.lineTo(this.size * 0.1, -this.size * 0.35);
+2571:       ctx.closePath();
+2572:       ctx.fill();
+2573:       ctx.stroke();
+2574: 
+2575:       ctx.beginPath();
+2576:       ctx.moveTo(-this.size * 0.1, this.size * 0.55);
+2577:       ctx.lineTo(-this.size * 0.6, this.size * 0.95);
+2578:       ctx.lineTo(this.size * 0.1, this.size * 0.35);
+2579:       ctx.closePath();
+2580:       ctx.fill();
+2581:       ctx.stroke();
+2582: 
+2583:       // Yellow eyes
+2584:       ctx.fillStyle = '#eab308';
+2585:       ctx.beginPath();
+2586:       ctx.arc(this.size * 0.55, -this.size * 0.2, 1.5, 0, Math.PI * 2);
+2587:       ctx.arc(this.size * 0.55, this.size * 0.2, 1.5, 0, Math.PI * 2);
+2588:       ctx.fill();
+2589: 
+2590:       // Dagger
+2591:       ctx.strokeStyle = '#94a3b8';
+2592:       ctx.lineWidth = 1.8;
+2593:       ctx.beginPath();
+2594:       ctx.moveTo(this.size * 0.5, this.size * 0.7);
+2595:       ctx.lineTo(this.size * 0.5 + 10, this.size * 0.7 + 3);
+2596:       ctx.stroke();
+2597: 
+2598:       ctx.restore();
+2599: 
+2600:     } else if (this.type === 'orc') {
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+

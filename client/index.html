@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evolutio - Асимметричная Кооперативная Игра</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="glow-bg"></div>
+  <div class="lobby-container">
+    <header>
+      <h1 class="glitch-title">EVOLUTIO</h1>
+      <p class="subtitle">Асимметричная эволюционная 2D-симуляция</p>
+    </header>
+
+    <main class="lobby-card">
+      <div class="input-group">
+        <label for="session-id">Идентификатор Сессии (Session ID)</label>
+        <input type="text" id="session-id" placeholder="Например: room-1" value="room-1">
+      </div>
+
+      <div class="role-selection">
+        <h3>Выберите свою роль в эволюции:</h3>
+        <div class="roles-grid">
+          
+          <div class="role-box" id="role-organism" onclick="selectRole('organism')">
+            <div class="role-icon font-glow-blue">🧬</div>
+            <h2>Организм</h2>
+            <p>Управляйте 2D-существом в чашке Петри и на суше. Собирайте питательные вещества, уклоняйтесь от опасностей и развивайте форму тела из блоков.</p>
+            <span class="tech-label">Клиент: Phaser 3 + Canvas</span>
+          </div>
+
+          <div class="role-box" id="role-geneticist" onclick="selectRole('geneticist')">
+            <div class="role-icon font-glow-green">🧠</div>
+            <h2>Генетик</h2>
+            <p>Контролируйте мутации через био-панель. Покупайте новые гены, отслеживайте пульс и ДНК организма по графикам, ведите его к разумной жизни.</p>
+            <span class="tech-label">Клиент: Web-Панель управления</span>
+          </div>
+
+        </div>
+      </div>
+
+      <button id="btn-connect" onclick="connectToGame()">ПОДКЛЮЧИТЬСЯ К СИМУЛЯЦИИ</button>
+      
+      <div id="error-message" class="error-box" style="display: none;"></div>
+    </main>
+
+    <footer>
+      <p>Создано в рамках демонстрации веб-технологий (Node.js + WebSockets + Phaser 3)</p>
+    </footer>
+  </div>
+
+  <script>
+    let selectedRole = '';
+
+    function selectRole(role) {
+      selectedRole = role;
+      document.getElementById('role-organism').classList.remove('active');
+      document.getElementById('role-geneticist').classList.remove('active');
+      
+      document.getElementById(`role-${role}`).classList.add('active');
+      document.getElementById('error-message').style.display = 'none';
+    }
+
+    function connectToGame() {
+      const sessionId = document.getElementById('session-id').value.trim();
+      const errorDiv = document.getElementById('error-message');
+
+      if (!sessionId) {
+        errorDiv.innerText = 'Пожалуйста, введите ID сессии!';
+        errorDiv.style.display = 'block';
+        return;
+      }
+
+      if (!selectedRole) {
+        errorDiv.innerText = 'Пожалуйста, выберите свою роль (Организм или Генетик)!';
+        errorDiv.style.display = 'block';
+        return;
+      }
+
+      // Redirect to the correct role page with session parameters
+      if (selectedRole === 'organism') {
+        window.location.href = `./organism/index.html?session=${encodeURIComponent(sessionId)}`;
+      } else {
+        window.location.href = `./geneticist/index.html?session=${encodeURIComponent(sessionId)}`;
+      }
+    }
+  </script>
+</body>
+</html>

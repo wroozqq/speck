@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evolutio - Панель Генетика</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+  <!-- Load Chart.js for real-time telemetry -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <!-- Header bar -->
+  <header class="panel-header">
+    <div class="header-logo">
+      <span class="logo-text">EVOLUTIO</span>
+      <span class="badge">Генетический Модуль</span>
+    </div>
+    <div class="session-info">
+      <span>Сессия: <strong id="session-display">...</strong></span>
+      <span class="status-indicator" id="organism-status">
+        <span class="status-dot disconnected"></span>
+        Организм: <span id="organism-status-text">Ожидание подключения...</span>
+      </span>
+    </div>
+    <a href="../" class="btn-exit">Выйти в Лобби</a>
+  </header>
+
+  <div class="panel-grid">
+    
+    <!-- LEFT COLUMN: TELEMETRY -->
+    <section class="panel-col telemetry-panel">
+      <div class="panel-title">🧬 Жизненные Показатели</div>
+      
+      <!-- Vital Stats Indicators -->
+      <div class="vitals-box">
+        <div class="stat-row">
+          <span>Целостность оболочки (HP)</span>
+          <span id="health-value">100 / 100</span>
+        </div>
+        <div class="health-bar-container">
+          <div class="health-bar-fill" id="health-bar"></div>
+        </div>
+        
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-card-title">Скорость</div>
+            <div class="stat-card-value" id="stat-speed">x1.0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">Защита</div>
+            <div class="stat-card-value" id="stat-armor">0%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">Сбор ДНК</div>
+            <div class="stat-card-value" id="stat-dna-mult">x1.0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-title">Захват пищи</div>
+            <div class="stat-card-value" id="stat-radius">x1.0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="charts-container">
+        <div class="chart-box">
+          <div class="chart-title">Кардиограмма Организма (HP)</div>
+          <canvas id="healthChart" height="110"></canvas>
+        </div>
+        <div class="chart-box">
+          <div class="chart-title">Синтез ДНК (Накоплено)</div>
+          <canvas id="dnaChart" height="110"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN: EVOLUTION TREE -->
+    <section class="panel-col evolution-panel">
+      <!-- Stage Info Header -->
+      <div class="stage-info-box">
+        <div class="stage-title-row">
+          <span class="stage-stage-num" id="stage-number">ЭТАП 1</span>
+          <h2 id="stage-name">Первичный бульон (Клетка)</h2>
+        </div>
+        <div class="evolution-progress-wrapper">
+          <div class="progress-labels">
+            <span>Прогресс эволюции ДНК:</span>
+            <span id="dna-progress-text">0 / 100 ДНК</span>
+          </div>
+          <div class="evolution-progress-bar">
+            <div class="evolution-progress-fill" id="dna-progress-bar" style="width: 0%;"></div>
+          </div>
+        </div>
+        <button id="btn-evolve" class="btn-evolve" disabled onclick="requestEvolve()">ЭВОЛЮЦИОНИРОВАТЬ</button>
+      </div>
+
+      <!-- Evolution Tree Grid -->
+      <div class="tree-container">
+        <div class="panel-title">🌳 Древо Активных Мутаций</div>
+        
+        <div class="tree-stage-group" id="tree-stage-1">
+          <div class="stage-label">Этап 1: Одноклеточный</div>
+          <div class="nodes-row">
+            <div class="mutation-node" id="node-flagellum" onclick="selectNode('flagellum')">
+              <div class="node-icon">🌀</div>
+              <div class="node-name">Жгутик</div>
+              <div class="node-cost">10 ДНК</div>
+            </div>
+            <div class="mutation-node" id="node-membrane" onclick="selectNode('membrane')">
+              <div class="node-icon">🛡️</div>
+              <div class="node-name">Мембрана</div>
+              <div class="node-cost">15 ДНК</div>
+            </div>
+            <div class="mutation-node" id="node-receptor" onclick="selectNode('receptor')">
+              <div class="node-icon">📡</div>
+              <div class="node-name">Рецептор</div>
+              <div class="node-cost">12 ДНК</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tree-stage-group locked" id="tree-stage-2">
+          <div class="stage-label">Этап 2: Водный организм</div>
+          <div class="nodes-row">
+            <div class="mutation-node" id="node-tail_fin" onclick="selectNode('tail_fin')">
+              <div class="node-icon">🐟</div>
+              <div class="node-name">Хвостовой Плавник</div>
+              <div class="node-cost">35 ДНК</div>
+            </div>
+            <div class="mutation-node" id="node-gills" onclick="selectNode('gills')">
+              <div class="node-icon">💨</div>
+              <div class="node-name">Жабры</div>
+              <div class="node-cost">30 ДНК</div>
+            </div>
+            <div class="mutation-node" id="node-chitin_shell" onclick="selectNode('chitin_shell')">
+              <div class="node-icon">🐚</div>
+              <div class="node-name">Хитиновый Панцирь</div>
+              <div class="node-cost">40 ДНК</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tree-stage-group locked" id="tree-stage-3">
+          <div class="stage-label">Этап 3: Сухопутный ползун</div>
+          <div class="nodes-row">
+            <div class="mutation-node" id="node-amphibian_legs" onclick="selectNode('amphibian_legs')">
+              <div class="node-icon">🦎</div>
+              <div class="node-name">Лапы</div>
+              <div class="node-cost">60 ДНК</div>
+            </div>
+            <div class="mutation-node" id="node-primitive_brain" onclick="selectNode('primitive_brain')">
+              <div class="node-icon">🧠</div>
+              <div class="node-name">Мозг</div>
+              <div class="node-cost">50 ДНК</div>
+            </div>
+            <div class="mutation-node" id="node-bone_armor" onclick="selectNode('bone_armor')">
+              <div class="node-icon">🦴</div>
+              <div class="node-name">Костяная Броня</div>
+              <div class="node-cost">70 ДНК</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tree-stage-group locked" id="tree-stage-4">
+          <div class="stage-label">Этап 4: Разумный гуманоид</div>
+          <div class="nodes-row">
+            <div class="mutation-node" id="node-bipedalism" onclick="selectNode('bipedalism')">
+              <div class="node-icon">🚶</div>
+              <div class="node-name">Прямохождение</div>
+              <div class="node-cost">110 ДНК</div>
+            </div>
+            <div class="mutation-node" id="node-cognitive_cortex" onclick="selectNode('cognitive_cortex')">
+              <div class="node-icon">🔬</div>
+              <div class="node-name">Мышление</div>
+              <div class="node-cost">100 ДНК</div>
+            </div>
+            <div class="mutation-node" id="node-dermal_armor" onclick="selectNode('dermal_armor')">
+              <div class="node-icon">🦾</div>
+              <div class="node-name">Броня кожи</div>
+              <div class="node-cost">120 ДНК</div>
+            </div>
+            <div class="mutation-node" id="node-cyber_interface" onclick="selectNode('cyber_interface')">
+              <div class="node-icon">🔌</div>
+              <div class="node-name">Интерфейс</div>
+              <div class="node-cost">140 ДНК</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mutation details & buy area -->
+      <div class="mutation-details-box" id="details-panel">
+        <p class="placeholder-text">Выберите узел мутации в древе для изучения генома...</p>
+        <div id="details-content" style="display: none;">
+          <h3 id="details-title">Название мутации</h3>
+          <p id="details-desc">Описание мутации</p>
+          <div class="details-meta">
+            <span class="cost-tag">Стоимость: <strong id="details-cost">0</strong> ДНК</span>
+            <span class="prereq-tag" id="details-prereq">Требование: Нет</span>
+          </div>
+          <button id="btn-buy-mutation" class="btn-buy" onclick="buySelectedMutation()">ВНЕДРИТЬ МУТАЦИЮ</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: ENVIRONMENT LOGS -->
+    <section class="panel-col log-panel">
+      <!-- Environmental Telemetry -->
+      <div class="environment-monitor">
+        <div class="panel-title">🌍 Параметры Среды обитания</div>
+        <div class="env-grid">
+          <div class="env-row">
+            <span>Атмосферное давление:</span>
+            <strong id="env-pressure">1.0 atm</strong>
+          </div>
+          <div class="env-row">
+            <span>Уровень токсичности:</span>
+            <strong id="env-toxicity" style="color: #ff007f;">Низкий (0.12%)</strong>
+          </div>
+          <div class="env-row">
+            <span>Температура среды:</span>
+            <strong id="env-temp">22.4 °C</strong>
+          </div>
+          <div class="env-row">
+            <span>Угроза внешней среды:</span>
+            <strong id="env-threat" style="color: #ffe15d;">Умеренная</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal Output / Logs -->
+      <div class="terminal-container">
+        <div class="panel-title">⌨️ Журнал генетической активности</div>
+        <div class="terminal-log" id="log-list">
+          <div class="log-entry system">[SYSTEM] Инициализация генетического модуля...</div>
+          <div class="log-entry system">[SYSTEM] Подключение к нейросети Организма...</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Load WebSockets & Client script -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>

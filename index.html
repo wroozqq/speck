@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Castle-Forge: 2D Medieval Evolution Simulator</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Share+Tech+Mono&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  
+  <!-- Medieval Ambient background grids -->
+  <div class="lab-bg"></div>
+  <div class="scanlines"></div>
+
+  <!-- HEADER -->
+  <header class="lab-header">
+    <div class="logo">
+      <span class="logo-title">CASTLE-FORGE</span>
+      <span class="logo-sub">2D БИО-НЕЙРОННЫЙ СИМУЛЯТОР ЭВОЛЮЦИИ В ЗАМКЕ</span>
+    </div>
+    <div class="header-stats">
+      <div class="stat-group">
+        <span class="label">ДНК:</span>
+        <span id="dna-points" class="val-glow-yellow">40</span>
+      </div>
+      <div class="stat-group">
+        <span class="label">ЗОЛОТО:</span>
+        <span id="gold-points" class="val-glow-yellow" style="color: #facc15; text-shadow: 0 0 8px #facc15;">0</span> <span class="gold-icon">🪙</span>
+      </div>
+      <div class="stat-group crystal-stat">
+        <span class="label">КРИСТАЛЛЫ:</span>
+        <span id="crystal-points" class="val-glow-crystal">0</span> <span>💎</span>
+      </div>
+      <div class="stat-group">
+        <span class="label">СТАДИЯ:</span>
+        <span id="current-era-title" class="val-glow-cyan">Слизень (Slime)</span>
+      </div>
+      <div class="stat-group">
+        <span class="label">БИО-ФОРМА:</span>
+        <span id="creature-stage" class="val-glow-pink">Amorphous Spore</span>
+      </div>
+      <button class="btn-crystal-shop" onclick="openCrystalShop()" title="Магазин Кристаллов">💎 Магазин</button>
+    </div>
+  </header>
+
+  <!-- MAIN DASHBOARD GRID -->
+  <main class="lab-grid">
+    
+    <!-- LEFT PANEL: TELEMETRY & STATS -->
+    <section class="lab-panel telemetry-panel">
+      <h2 class="panel-title">🏰 Жизненные Показатели</h2>
+      
+      <div class="biotope-stats">
+        <div class="env-stat">
+          <div class="stat-header">
+            <span class="stat-name">Здоровье (HP)</span>
+            <span class="stat-value" id="val-health">100 / 100</span>
+          </div>
+          <div class="stat-bar"><div id="bar-health" class="stat-fill red-fill" style="width: 100%;"></div></div>
+        </div>
+        <div class="env-stat">
+          <div class="stat-header">
+            <span class="stat-name">Сытость / Энергия</span>
+            <span class="stat-value" id="val-energy">100 / 100</span>
+          </div>
+          <div class="stat-bar"><div id="bar-energy" class="stat-fill yellow-fill" style="width: 100%;"></div></div>
+        </div>
+        <div class="env-stat">
+          <div class="stat-header">
+            <span class="stat-name">Накопление Массы (Эволюция)</span>
+            <span class="stat-value" id="val-evolve">0%</span>
+          </div>
+          <div class="stat-bar"><div id="bar-evolve" class="stat-fill cyan-fill pulse-bar" style="width: 0%;"></div></div>
+        </div>
+      </div>
+
+      <h2 class="panel-title">⚔️ Боевые Свойства</h2>
+      <div class="creature-specs">
+        <div class="spec-row"><span>Размер (COL1A1):</span><strong id="spec-size">1.0x</strong></div>
+        <div class="spec-row"><span>Подвижность (ACTA1):</span><strong id="spec-speed">120</strong></div>
+        <div class="spec-row"><span>Защита кожи (CHIT1):</span><strong id="spec-armor">0%</strong></div>
+        <div class="spec-row"><span>Сила укуса/огня (SHH):</span><strong id="spec-damage">5 DP</strong></div>
+        <div class="spec-row"><span>Радиус Света (OPN1LW):</span><strong id="spec-vision">150px</strong></div>
+        <div class="spec-row"><span>Нетопыри-помощники:</span><strong id="spec-drones">0 / 0</strong></div>
+      </div>
+
+      <h2 class="panel-title">⚜️ Активные Синергии (Классы)</h2>
+      <div class="creature-specs" id="creature-synergies" style="padding: 10px 15px; display: flex; flex-direction: column; gap: 4px; justify-content: flex-start; align-items: flex-start; min-height: 25px; border-bottom: 1px solid rgba(255, 123, 0, 0.08);">
+        <span id="no-synergies-text" style="color: var(--text-muted); font-size: 11px;">Нет активных классов</span>
+      </div>
+
+      <h2 class="panel-title">💍 Найденные Реликвии</h2>
+      <div class="creature-specs" id="creature-relics" style="padding: 10px 15px; display: flex; flex-direction: row; gap: 12px; justify-content: flex-start; align-items: center; min-height: 48px; border-bottom: 1px solid rgba(255, 123, 0, 0.08);">
+        <span id="no-relics-text" style="color: var(--text-muted); font-size: 11px;">Нет реликвий</span>
+      </div>
+
+      <h2 class="panel-title">🏰 Алхимический Арсенал (За Золото)</h2>
+      <div class="creature-upgrades">
+        <div class="upgrade-row">
+          <span>Живучесть (+30 HP)</span>
+          <button class="upg-btn" onclick="upgradeStat('hp')"><span id="upg-cost-hp">15</span> <span class="gold-icon">🪙</span></button>
+        </div>
+        <div class="upgrade-row">
+          <span>Мышцы (+30% Скорость)</span>
+          <button class="upg-btn" onclick="upgradeStat('speed')"><span id="upg-cost-speed">20</span> <span class="gold-icon">🪙</span></button>
+        </div>
+        <div class="upgrade-row">
+          <span>Челюсти/Огонь (+50% Сила)</span>
+          <button class="upg-btn" onclick="upgradeStat('damage')"><span id="upg-cost-damage">25</span> <span class="gold-icon">🪙</span></button>
+        </div>
+        <div class="upgrade-row">
+          <span>Аура света (+60px Обзор)</span>
+          <button class="upg-btn" onclick="upgradeStat('vision')"><span id="upg-cost-vision">10</span> <span class="gold-icon">🪙</span></button>
+        </div>
+      </div>
+
+      <h2 class="panel-title font-mono">📜 Отчет из Подземелья</h2>
+      <div class="eco-report">
+        <div class="report-item"><span>Убито стражников:</span><strong id="eco-guards" class="val-cyan">0</strong></div>
+        <div class="report-item"><span>Собрано золота:</span><strong id="eco-gold" class="val-yellow">0</strong></div>
+        <div class="report-item"><span>Поколение ИИ:</span><strong id="eco-generation" class="val-yellow">1</strong></div>
+        <div class="report-item"><span>Глубина (Этаж):</span><strong id="eco-level" class="val-cyan">1</strong></div>
+        <div class="report-item"><span>Всего существ в замке:</span><strong id="eco-count">20</strong></div>
+      </div>
+    </section>
+
+    <!-- CENTER PANEL: GAME VIEWPORT -->
+    <section class="lab-panel viewport-panel">
+      <div class="viewport-header">
+        <div class="control-row">
+          <button id="btn-synergies" class="control-btn pulse-glow-yellow" onclick="openSynergiesModal()">
+            <span>📜 СВИТОК СИНЕРГИЙ</span>
+          </button>
+          <button id="btn-autopilot" class="control-btn pulse-glow-cyan" onclick="toggleAutopilot()">
+            <span>АВТОПИЛОТ ИИ: <strong id="autopilot-status">ВЫКЛ</strong></span>
+          </button>
+          <button id="btn-sound" class="control-btn" onclick="toggleSound()">
+            <span>ЗВУК: <strong>ВКЛ</strong></span>
+          </button>
+          <button id="btn-evolve" class="control-btn btn-evolve-ready hidden" onclick="triggerEvolution()">
+            <span>🧬 ЭВОЛЮЦИОНИРОВАТЬ!</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="canvas-container" id="canvas-container">
+        <!-- 2D Canvas -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Dynamic game overlay messages -->
+        <div class="game-hud-overlay" id="hud-overlay">
+          <div class="sunlight-banner hidden" id="sun-banner">♨ Тепло факела (Светосинтез активен)</div>
+          <div class="vent-banner hidden" id="vent-banner">☠ Зал Короля (Рыцари агрессивны)</div>
+          <div class="dead-screen hidden" id="death-overlay">
+            <h2>БИОЛОГИЧЕСКАЯ СМЕРТЬ</h2>
+            <p>Вы пали от меча рыцаря или умерли от истощения в коридорах замка.</p>
+            <button class="btn-restart" onclick="restartSimulation()">РЕГЕНЕРАЦИЯ ИЗ КОКОНА</button>
+          </div>
+          <div class="dead-screen hidden" id="victory-overlay" style="background: rgba(15, 23, 42, 0.95); border-color: #f59e0b; box-shadow: 0 0 30px rgba(245, 158, 11, 0.45);">
+            <h2 style="color: #fbbf24; text-shadow: 0 0 15px rgba(245, 158, 11, 0.6);">КОРОНАЦИЯ ЭВОЛЮЦИИ</h2>
+            <p>Вы одолели Абсолютного Паладина, завоевали замок и достигли пика эволюции генома!</p>
+            <button class="btn-restart" onclick="restartSimulation()" style="background: linear-gradient(135deg, #f59e0b, #b45309); border-color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.45);">НАЧАТЬ ЗАНОВО</button>
+          </div>
+        </div>
+
+        <div class="game-controls-hint">
+          <span>Управление: <strong>WASD / Мышь</strong>. Собирайте мох, сыр и золото. Пробел/Клик: <strong>Рывок / Плевок огнем</strong>.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: NEURAL BRAIN MAP -->
+    <section class="lab-panel brain-panel">
+      <h2 class="panel-title">🧠 Сенсоры Лабиринта и Нейросеть</h2>
+      
+      <div class="brain-canvas-wrapper">
+        <canvas id="brain-canvas"></canvas>
+      </div>
+
+      <div class="brain-legend">
+        <div class="legend-item"><span class="node-dot in"></span><span>Входы (Стены, Цели)</span></div>
+        <div class="legend-item"><span class="node-dot hid"></span><span>Скрытый мозг</span></div>
+        <div class="legend-item"><span class="node-dot out"></span><span>Выходы (Моторика)</span></div>
+      </div>
+
+      <h2 class="panel-title font-mono">📜 Хроника Выживания в Замке</h2>
+      <div class="lab-terminal-log" id="terminal-log-box">
+        <div class="log-row sys">[ИНФО] Инициализация Castle-Forge...</div>
+        <div class="log-row sys">[ИНФО] Вы зародились как Слизень в темном сыром склепе замка.</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM PANEL: GENOME MATRIX TREE -->
+  <footer class="lab-footer">
+    <div class="genome-tree-title">
+      <h3>🧬 ЭВОЛЮЦИОННАЯ МАТРИЦА ГЕНОМА (МЕДИВАЛЬНЫЙ ДНК-ФОРДЖ)</h3>
+      <span class="info-note">Выберите мутацию гена ДНК и нажмите "Мутировать", чтобы разблокировать органы.</span>
+    </div>
+
+    <div class="genome-tabs">
+      <div class="genome-column">
+        <div class="col-header">Метаболизм и Энергия</div>
+        <div class="genes-list">
+          <div class="gene-item" id="gene-rubisco" onclick="selectGene('rubisco')">
+            <span class="gene-code">RuBisCO</span>
+            <span class="gene-name">Светосинтез (Факелы)</span>
+            <span class="gene-cost">20 ДНК</span>
+          </div>
+          <div class="gene-item" id="gene-cox1" onclick="selectGene('cox1')">
+            <span class="gene-code">COX1</span>
+            <span class="gene-name">Выносливость</span>
+            <span class="gene-cost">25 ДНК</span>
+          </div>
+          <div class="gene-item" id="gene-ldha" onclick="selectGene('ldha')">
+            <span class="gene-code">LDHA</span>
+            <span class="gene-name">Гликолиз (Рывок/Даш)</span>
+            <span class="gene-cost">15 ДНК</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="genome-column">
+        <div class="col-header">Анатомия и Атака</div>
+        <div class="genes-list">
+          <div class="gene-item" id="gene-col1a1" onclick="selectGene('col1a1')">
+            <span class="gene-code">COL1A1</span>
+            <span class="gene-name">Коллаген (Рост/Хвост)</span>
+            <span class="gene-cost">25 ДНК</span>
+          </div>
+          <div class="gene-item" id="gene-acta1" onclick="selectGene('acta1')">
+            <span class="gene-code">ACTA1</span>
+            <span class="gene-name">Актин (Мышцы/Бег)</span>
+            <span class="gene-cost">20 ДНК</span>
+          </div>
+          <div class="gene-item" id="gene-chit1" onclick="selectGene('chit1')">
+            <span class="gene-code">CHIT1</span>
+            <span class="gene-name">Чешуя (Броня)</span>
+            <span class="gene-cost">30 ДНК</span>
+          </div>
+          <div class="gene-item" id="gene-shh" onclick="selectGene('shh')">
+            <span class="gene-code">SHH</span>
+            <span class="gene-name">Когти и Огонь (Урон)</span>
+            <span class="gene-cost">40 ДНК</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="genome-column">
+        <div class="col-header">Сенсорика и Коммуникация</div>
+        <div class="genes-list">
+          <div class="gene-item" id="gene-opn1lw" onclick="selectGene('opn1lw')">
+            <span class="gene-code">OPN1LW</span>
+            <span class="gene-name">Опсин (Темное зрение)</span>
+            <span class="gene-cost">15 ДНК</span>
+          </div>
+          <div class="gene-item" id="gene-mbp" onclick="selectGene('mbp')">
+            <span class="gene-code">MBP</span>
+            <span class="gene-name">Миелин (Умный ИИ)</span>
+            <span class="gene-cost">30 ДНК</span>
+          </div>
+          <div class="gene-item" id="gene-foxp2" onclick="selectGene('foxp2')">
+            <span class="gene-code">FOXP2</span>
+            <span class="gene-name">Рой нетопырей (Дроны)</span>
+            <span class="gene-cost">45 ДНК</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Genetic details popup overlay -->
+  <div id="gene-modal" class="modal-overlay" style="display: none;">
+    <div class="gene-card">
+      <div class="gene-card-header">
+        <h3 id="modal-gene-name">RuBisCO</h3>
+        <span class="gene-dna-symbol" id="modal-gene-symbol">Ген: RuBisCO (Углеродная фиксация)</span>
+      </div>
+      <div class="gene-card-body">
+        <p class="real-bio-fact" id="modal-gene-bio-fact"><strong>Биологическая роль:</strong> Первичный земной белок фотосинтеза.</p>
+        <p class="gameplay-bonus" id="modal-gene-gameplay"><strong>Эффект в симуляции:</strong> Светосинтез: стоя рядом с горящими факелами в комнатах замка, существо греется и восстанавливает Сытость.</p>
+        <div class="modal-meta">
+          <span>Стоимость: <strong id="modal-gene-cost" class="val-yellow">20</strong> ДНК</span>
+          <span id="modal-gene-status">Статус: Доступен</span>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button class="btn-buy" id="btn-buy-mutation" onclick="buySelectedMutation()">МУТИРОВАТЬ</button>
+        <button class="btn-close" onclick="closeGeneModal()">ЗАКРЫТЬ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Synergies Scroll Popup Overlay -->
+  <div id="synergies-modal" class="modal-overlay" style="display: none;">
+    <div class="gene-card" style="max-width: 480px;">
+      <div class="gene-card-header">
+        <h3>📜 СВИТОК СИНЕРГИЙ ГЕНОВ</h3>
+      </div>
+      <div class="gene-card-body" style="max-height: 320px; overflow-y: auto; text-align: left; padding: 10px 15px;">
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+          Приобретайте комбинации подходящих генов, чтобы активировать древние боевые классы и получить мощные пассивные бонусы. Активные синергии отображаются в игровом HUD.
+        </p>
+        
+        <!-- Synergy Item 1 -->
+        <div class="synergy-item" id="syn-fire-knight" style="border: 1px solid rgba(239, 68, 68, 0.2); padding: 8px; border-radius: 4px; margin-bottom: 8px; background: rgba(239, 68, 68, 0.03);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: #ef4444; font-size: 12px;">🔥 Огненный Рыцарь (Fire Knight)</strong>
+            <span id="syn-status-fire-knight" class="val-red" style="font-size: 10px; font-weight: bold; color: #ef4444;">Неактивен</span>
+          </div>
+          <p style="font-size: 10px; margin: 4px 0; color: #e2e8f0;">Требования: RuBisCO + Sonic Hedgehog (SHH)</p>
+          <p style="font-size: 10px; color: var(--text-muted); margin: 0;">Бонус: Огненные шары поджигают врагов (+3 урона/сек на 4 сек). При получении урона игрок выпускает круговую вспышку огня (кд 4 сек).</p>
+        </div>
+
+        <!-- Synergy Item 2 -->
+        <div class="synergy-item" id="syn-toxic-rogue" style="border: 1px solid rgba(34, 197, 94, 0.2); padding: 8px; border-radius: 4px; margin-bottom: 8px; background: rgba(34, 197, 94, 0.03);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: #22c55e; font-size: 12px;">🤢 Ядовитый Разбойник (Toxic Rogue)</strong>
+            <span id="syn-status-toxic-rogue" class="val-red" style="font-size: 10px; font-weight: bold; color: #ef4444;">Неактивен</span>
+          </div>
+          <p style="font-size: 10px; margin: 4px 0; color: #e2e8f0;">Требования: Гликолиз (LDHA) + Хитиновая чешуя (CHIT1)</p>
+          <p style="font-size: 10px; color: var(--text-muted); margin: 0;">Бонус: Сверх-Рывок оставляет за собой след из ядовитой кислоты, ранящей врагов. Скорость передвижения увеличена еще на 15%.</p>
+        </div>
+
+        <!-- Synergy Item 3 -->
+        <div class="synergy-item" id="syn-feral-overlord" style="border: 1px solid rgba(245, 158, 11, 0.2); padding: 8px; border-radius: 4px; margin-bottom: 8px; background: rgba(245, 158, 11, 0.03);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: #f59e0b; font-size: 12px;">🐺 Хищный Мастер (Feral Overlord)</strong>
+            <span id="syn-status-feral-overlord" class="val-red" style="font-size: 10px; font-weight: bold; color: #ef4444;">Неактивен</span>
+          </div>
+          <p style="font-size: 10px; margin: 4px 0; color: #e2e8f0;">Требования: Коллаген (COL1A1) + Актин (ACTA1)</p>
+          <p style="font-size: 10px; color: var(--text-muted); margin: 0;">Бонус: Максимальное здоровье повышено на +100 ед. Атаки ближнего боя возвращают 2 HP в виде здоровья (вампиризм).</p>
+        </div>
+
+        <!-- Synergy Item 4 -->
+        <div class="synergy-item" id="syn-swarm-lord" style="border: 1px solid rgba(6, 182, 212, 0.2); padding: 8px; border-radius: 4px; margin-bottom: 8px; background: rgba(6, 182, 212, 0.03);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: #06b6d4; font-size: 12px;">🦇 Владыка Роя (Lord of the Swarm)</strong>
+            <span id="syn-status-swarm-lord" class="val-red" style="font-size: 10px; font-weight: bold; color: #ef4444;">Неактивен</span>
+          </div>
+          <p style="font-size: 10px; margin: 4px 0; color: #e2e8f0;">Требования: Рой нетопырей (FOXP2) + Миелин (MBP) + Кошачий глаз (OPN1LW)</p>
+          <p style="font-size: 10px; color: var(--text-muted); margin: 0;">Бонус: Призываются еще 2 дополнительные летучие мыши (всего 4). Урон огненных шаров увеличен на 50%.</p>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button class="btn-close" onclick="closeSynergiesModal()" style="width: 100%;">ЗАКРЫТЬ СВИТОК</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Intro Screen -->
+  <div id="intro-screen" class="modal-overlay">
+    <div class="intro-box">
+      <h1 class="glow-title">CASTLE-FORGE</h1>
+      <p class="subtitle">2D Симулятор Эволюции в замке под управлением ИИ</p>
+      
+      <div class="intro-tutorial">
+        <h3>Инструкции по Выживанию в Замке:</h3>
+        <p>Вы — сбежавший рекрут, подвергшийся алхимическим мутациям ДНК в лаборатории замка. Ваша цель — эволюционировать из слабого послушника в легендарного Чемпиона-Паладина, сбежать из замка и одолеть королевскую гвардию.</p>
+        <ul>
+          <li>🧬 <strong>Сбор Ресурсов</strong>: Исследуйте коридоры, собирайте хлеб, сыр и целебные зелья. Разбивайте сундуки с золотом. Золото превращается в ДНК-ресурс!</li>
+          <li>⚔️ <strong>Опасности лабиринта</strong>: Стражники замка патрулируют залы. Они атакуют мечами. Сбегайте от них или бейте со спины своим мечом.</li>
+          <li>🧠 <strong>Лучевые сенсоры ИИ</strong>: Включите <strong>Автопилот ИИ</strong> в любой момент. Нейронная сеть ориентируется по расстояниям до стен (лучевые датчики на 4 стороны) и идет к целям.</li>
+          <li>🔥 <strong>Реальные Гены</strong>: Покупайте мутации, повышающие скорость, выносливость, броню и урон (меч и щит).</li>
+        </ul>
+      </div>
+
+      <button class="btn-start" onclick="closeIntro()">ВОЙТИ В ЗАМОК</button>
+    </div>
+  </div>
+
+  <!-- Crystal Shop Modal -->
+  <div id="crystal-shop-modal" class="modal-overlay" style="display: none;">
+    <div class="crystal-shop-card">
+      <div class="crystal-shop-header">
+        <h3>💎 МАГАЗИН КРИСТАЛЛОВ</h3>
+        <span class="crystal-balance">У вас: <strong id="shop-crystal-count">0</strong> 💎</span>
+      </div>
+      <p class="crystal-shop-subtitle">Тратьте кристаллы на косметику и временные бонусы. Кристаллы зарабатываются в игре — за убийства, сундуки и боссов.</p>
+      <div class="crystal-shop-grid">
+
+        <!-- Skin: Ice Dragon -->
+        <div class="crystal-item" id="shop-skin-ice">
+          <div class="crystal-item-icon">🐉</div>
+          <div class="crystal-item-name">Скин: Ледяной Дракон</div>
+          <div class="crystal-item-desc">Синий/белый цвет персонажа. Вечный.</div>
+          <button class="btn-crystal-buy" onclick="buyCrystalItem('skin_ice', 150)">150 💎</button>
+        </div>
+
+        <!-- Skin: Fire Lord -->
+        <div class="crystal-item" id="shop-skin-fire">
+          <div class="crystal-item-icon">🔥</div>
+          <div class="crystal-item-name">Скин: Огненный Лорд</div>
+          <div class="crystal-item-desc">Красный/золотой цвет с огненным свечением. Вечный.</div>
+          <button class="btn-crystal-buy" onclick="buyCrystalItem('skin_fire', 150)">150 💎</button>
+        </div>
+
+        <!-- Skin: Shadow -->
+        <div class="crystal-item" id="shop-skin-shadow">
+          <div class="crystal-item-icon">🌑</div>
+          <div class="crystal-item-name">Скин: Тень Смерти</div>
+          <div class="crystal-item-desc">Чёрный/фиолетовый цвет с тёмным ореолом. Вечный.</div>
+          <button class="btn-crystal-buy" onclick="buyCrystalItem('skin_shadow', 200)">200 💎</button>
+        </div>
+
+        <!-- Death Shield -->
+        <div class="crystal-item" id="shop-death-shield">
+          <div class="crystal-item-icon">🛡️</div>
+          <div class="crystal-item-name">Щит Смерти</div>
+          <div class="crystal-item-desc">Один раз вместо гибели остаётесь живы с 25% здоровья.</div>
+          <button class="btn-crystal-buy" onclick="buyCrystalItem('death_shield', 100)">100 💎</button>
+        </div>
+
+        <!-- DNA Boost -->
+        <div class="crystal-item" id="shop-dna-boost">
+          <div class="crystal-item-icon">🧬</div>
+          <div class="crystal-item-name">Усиление ДНК x2 (5 мин)</div>
+          <div class="crystal-item-desc">Все награды ДНК удвоены на 5 минут.</div>
+          <button class="btn-crystal-buy" onclick="buyCrystalItem('dna_boost', 80)">80 💎</button>
+        </div>
+
+      </div>
+      <div class="modal-buttons" style="margin-top: 12px;">
+        <button class="btn-close" onclick="closeCrystalShop()" style="width: 100%;">ЗАКРЫТЬ</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
