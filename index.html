@@ -156,11 +156,13 @@
             <h2>БИОЛОГИЧЕСКАЯ СМЕРТЬ</h2>
             <p>Вы пали от меча рыцаря или умерли от истощения в коридорах замка.</p>
             <button class="btn-restart" onclick="restartSimulation()">РЕГЕНЕРАЦИЯ ИЗ КОКОНА</button>
+            <button class="btn-restart" id="btn-load-save" onclick="loadSimulationSave()" style="margin-top: 10px; background: linear-gradient(135deg, #10b981, #047857); border-color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.45); display: none;">ЗАГРУЗИТЬ С НАЧАЛА ЭТАЖА</button>
           </div>
-          <div class="dead-screen hidden" id="victory-overlay" style="background: rgba(15, 23, 42, 0.95); border-color: #f59e0b; box-shadow: 0 0 30px rgba(245, 158, 11, 0.45);">
+          <div class="dead-screen hidden" id="victory-overlay" style="background: rgba(15, 23, 42, 0.95); border-color: #f59e0b; box-shadow: 0 0 30px rgba(245, 158, 11, 0.45); max-width: 420px; width: 90%;">
             <h2 style="color: #fbbf24; text-shadow: 0 0 15px rgba(245, 158, 11, 0.6);">КОРОНАЦИЯ ЭВОЛЮЦИИ</h2>
             <p>Вы одолели Абсолютного Паладина, завоевали замок и достигли пика эволюции генома!</p>
-            <button class="btn-restart" onclick="restartSimulation()" style="background: linear-gradient(135deg, #f59e0b, #b45309); border-color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.45);">НАЧАТЬ ЗАНОВО</button>
+            <div id="victory-stats"></div>
+            <button class="btn-restart" onclick="restartSimulation()" style="background: linear-gradient(135deg, #f59e0b, #b45309); border-color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.45); margin-top: 10px;">НАЧАТЬ ЗАНОВО</button>
           </div>
         </div>
 

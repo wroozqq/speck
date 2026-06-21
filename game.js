@@ -1,4 +1,4 @@
-// ==========================================
+﻿// ==========================================
 // CASTLE-FORGE: MEDIEVAL DUNGEON CRAWLER ENGINE (2D REALTIME EVOLUTION)
 // ==========================================
 
@@ -253,6 +253,28 @@ const synth = {
       osc.start(now + i * 0.15);
       osc.stop(now + i * 0.15 + 0.5);
     });
+  },
+  playVictorySong() {
+    if (!soundEnabled || !this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    let now = this.ctx.currentTime;
+    // Heroic arpeggio notes: C4, G4, C5, E5, G5, C6 (extended final chord)
+    let arpeggio = [261.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+    arpeggio.forEach((freq, i) => {
+      let osc = this.ctx.createOscillator();
+      let gain = this.ctx.createGain();
+      osc.type = i === arpeggio.length - 1 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now + i * 0.12);
+      
+      let duration = i === arpeggio.length - 1 ? 2.5 : 0.8;
+      gain.gain.setValueAtTime(0.04, now + i * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + duration);
+      
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now + i * 0.12);
+      osc.stop(now + i * 0.12 + duration);
+    });
   }
 };
 
@@ -434,17 +456,45 @@ class Organism {
                     ((type === 'guard' || type === 'mage' || type === 'bomber') ? Math.min(14, 7 * (1 + (lvl - 1) * 0.08)) : 4))))))));
     this.sizeScale = 1.0;
     let hpScale = Math.pow(1.8, lvl - 1);
-    this.health = type === 'boss' ? Math.round(180 * 2.5 * hpScale) :
-                  (type === 'orc' ? Math.round(48 * 2.5 * hpScale) :
-                  (type === 'halberdier' ? Math.round(42 * 2.5 * hpScale) :
-                  (type === 'alchemist' ? Math.round(25 * 2.5 * hpScale) :
-                  (type === 'guard' ? Math.round(30 * 2.5 * hpScale) :
-                  (type === 'mage' ? Math.round(24 * 2.5 * hpScale) :
-                  (type === 'bomber' ? Math.round(18 * 2.5 * hpScale) :
-                  (type === 'goblin' ? Math.round(20 * 2.5 * hpScale) :
-                  (type === 'vampire' ? Math.round(35 * 2.5 * hpScale) :
-                  (type === 'shaman' ? Math.round(22 * 2.5 * hpScale) :
-                  (type === 'rat' ? Math.round(12 * 2.5 * hpScale) : 100))))))))));
+    let dmgScale = Math.pow(1.6, lvl - 1);
+    if (lvl === 2) {
+      hpScale = 1.25;
+      dmgScale = 1.2;
+    } else if (lvl === 3) {
+      hpScale = 3.6;  // Restored and buffed from 3.24 as requested
+      dmgScale = 2.8; // Restored and buffed from 2.56 as requested
+    } else if (lvl >= 4) {
+      hpScale = 2.6;  // Reduced from 5.832 to make final level more fair and beatable
+      dmgScale = 2.0; // Reduced from 4.096 to make final level more fair and beatable
+    }
+    
+    let mobHpScale = hpScale;
+    let mobDmgScale = dmgScale;
+    if (lvl === 2 && type === 'halberdier') {
+      mobHpScale = 1.05;
+      mobDmgScale = 1.05;
+    }
+    
+    let mageHpBase = (type === 'mage' && lvl === 2) ? 16 : 24;
+
+    let bossHpBase = 180;
+    if (type === 'boss') {
+      if (lvl === 2) bossHpBase = 180 * 1.5;
+      else if (lvl === 3) bossHpBase = 180 * 1.7;
+      else if (lvl >= 4) bossHpBase = 180 * 2.0;
+    }
+
+    this.health = type === 'boss' ? Math.round(bossHpBase * 2.5 * mobHpScale) :
+                  (type === 'orc' ? Math.round(48 * 2.5 * mobHpScale) :
+                  (type === 'halberdier' ? Math.round(42 * 2.5 * mobHpScale) :
+                  (type === 'alchemist' ? Math.round(25 * 2.5 * mobHpScale) :
+                  (type === 'guard' ? Math.round(30 * 2.5 * mobHpScale) :
+                  (type === 'mage' ? Math.round(mageHpBase * 2.5 * mobHpScale) :
+                  (type === 'bomber' ? Math.round(18 * 2.5 * mobHpScale) :
+                  (type === 'goblin' ? Math.round(20 * 2.5 * mobHpScale) :
+                  (type === 'vampire' ? Math.round(20 * 2.5 * mobHpScale) : // Nerfed from 35 to 20
+                  (type === 'shaman' ? Math.round(22 * 2.5 * mobHpScale) :
+                  (type === 'rat' ? Math.round(12 * 2.5 * mobHpScale) : 100))))))))));
     this.maxHealth = this.health;
     this.energy = 95;
     this.maxEnergy = 100;
@@ -462,16 +512,15 @@ class Organism {
                  (type === 'bomber' ? 1.25 : 1.45)))))))));
     this.acceleration = type === 'boss' ? 0.08 : 0.08;
     this.armor = 0;
-    let dmgScale = Math.pow(1.6, lvl - 1);
-    this.damage = type === 'boss' ? Math.round(10 * 2.5 * dmgScale) :
-                  (type === 'orc' ? Math.round(7 * 2.5 * dmgScale) :
-                  (type === 'halberdier' ? Math.round(8 * 2.5 * dmgScale) :
+    this.damage = type === 'boss' ? Math.round(10 * 2.5 * mobDmgScale) :
+                  (type === 'orc' ? Math.round(7 * 2.5 * mobDmgScale) :
+                  (type === 'halberdier' ? Math.round(8 * 2.5 * mobDmgScale) :
                   (type === 'alchemist' ? 0 :
-                  (type === 'guard' ? Math.round(4 * 2.5 * dmgScale) :
-                  (type === 'mage' ? Math.round(6 * 2.5 * dmgScale) :
-                  (type === 'goblin' ? Math.round(3 * 2.5 * dmgScale) :
-                  (type === 'vampire' ? Math.round(5 * 2.5 * dmgScale) :
-                  (type === 'shaman' ? Math.round(4 * 2.5 * dmgScale) :
+                  (type === 'guard' ? Math.round(4 * 2.5 * mobDmgScale) :
+                  (type === 'mage' ? Math.round(6 * 2.5 * mobDmgScale) :
+                  (type === 'goblin' ? Math.round(3 * 2.5 * mobDmgScale) :
+                  (type === 'vampire' ? Math.round(5 * 2.5 * mobDmgScale) :
+                  (type === 'shaman' ? Math.round(4 * 2.5 * mobDmgScale) :
                   (type === 'bomber' ? 0 :
                   (type === 'rat' ? Math.round(2 * 2.5) : 100))))))))));
     this.visionRadius = type === 'boss' ? 320 : 240;
@@ -557,7 +606,7 @@ class Organism {
     // Feral Overlord synergy: +100 Max Health
     if (state.genes.col1a1 && state.genes.acta1) baseMaxHealth += 100;
     
-    this.maxEnergy = 100;
+    this.maxEnergy = state.stage >= 3 ? 150 : 100;
     if (state.relics) {
       if (state.relics.elixir) {
         baseMaxHealth *= 1.40;
@@ -593,8 +642,7 @@ class Organism {
   updateSegmentCount() {
     let count = 0;
     if (this.isPlayer) {
-      if (state.stage === 4) count = 3; // short cape
-      else count = 0; // no segments/tail for stages 1-3
+      count = 0; // No segments or tail for player (Knight gets a custom waving vector cape)
     } else if (this.type === 'rat') {
       count = 1; // tail for rats
     } else {
@@ -642,9 +690,6 @@ class Organism {
     // Decode neural activations into physical body properties:
     // 1. Segment count (only Stage 4 Knight has a short 3-segment cape, stages 1-3 have NO tail/cape segments!)
     let segmentCount = 0;
-    if (state.stage === 4) {
-      segmentCount = 3;
-    }
     
     // 2. Body fatness / bulging shape (calculated per segment)
     this.bodySegmentsProfile = [];
@@ -767,17 +812,18 @@ class Organism {
       let pulseFreq = 0.003 + brainSum * 0.012;
       this.intellectPulse = Math.sin(Date.now() * pulseFreq) * 0.5 + 0.5;
 
-      // Dragon tail flame sparks emitter
-      if (state.stage === 4 && this.segments.length > 0) {
-        let lastSeg = this.segments[this.segments.length - 1];
+      // Dragon tail/cape flame sparks emitter
+      if (state.stage === 4) {
         let excitement = this.excitementLevel;
         let alert = this.alertLevel;
         
         let spawnChance = (0.2 + excitement * 0.5) * dtRatio;
         if (Math.random() < spawnChance) {
+          let backX = this.x - Math.cos(this.angle) * this.size * 1.5;
+          let backY = this.y - Math.sin(this.angle) * this.size * 1.5;
           particles.push({
-            x: lastSeg.x + (Math.random() - 0.5) * 8,
-            y: lastSeg.y + (Math.random() - 0.5) * 8,
+            x: backX + (Math.random() - 0.5) * 8,
+            y: backY + (Math.random() - 0.5) * 8,
             vx: -Math.cos(this.angle) * (1.5 + excitement * 2.0) + (Math.random() - 0.5) * 1.5,
             vy: -Math.sin(this.angle) * (1.5 + excitement * 2.0) + (Math.random() - 0.5) * 1.5,
             size: Math.random() * 3.5 + 1.5 + alert * 2.0,
@@ -1102,7 +1148,9 @@ class Organism {
         this.angle = Math.atan2(playerTarget.y - this.y, playerTarget.x - this.x);
         
         // Halberdier moves into lunge range (50-70px)
-        if (d > 65) {
+        let lvl = (typeof state !== 'undefined' && state.level) ? state.level : 1;
+        let backAwayDist = (lvl === 2) ? 42 : 65;
+        if (d > backAwayDist) {
           this.vx += Math.cos(this.angle) * this.acceleration * 1.25;
           this.vy += Math.sin(this.angle) * this.acceleration * 1.25;
         } else {
@@ -1161,7 +1209,7 @@ class Organism {
         if (this.flaskTimer > 0) this.flaskTimer--;
         
         if (this.flaskTimer <= 0 && d < 280) {
-          this.flaskTimer = 120 + Math.floor(Math.random() * 40); // 2-3 seconds cooldown
+          this.flaskTimer = 160 + Math.floor(Math.random() * 60); // 3-4 seconds cooldown
           throwToxicFlask(this.x, this.y, playerTarget.x, playerTarget.y, this);
         }
         return;
@@ -1228,13 +1276,13 @@ class Organism {
           this.vy += Math.sin(this.angle) * this.acceleration * 0.7;
         }
         
-        // Shoot magic poison bolt every 50 frames
-        if (ticks % 50 === 0 && d < 280) {
+        // Shoot magic poison bolt every 80 frames (slower rate of fire)
+        if (ticks % 80 === 0 && d < 280) {
           fireballs.push({
             x: this.x + Math.cos(this.angle) * this.size,
             y: this.y + Math.sin(this.angle) * this.size,
-            vx: Math.cos(this.angle) * 5.0,
-            vy: Math.sin(this.angle) * 5.0,
+            vx: Math.cos(this.angle) * 3.2,
+            vy: Math.sin(this.angle) * 3.2,
             size: 4.5,
             owner: this // enemy caster owner
           });
@@ -1261,7 +1309,8 @@ class Organism {
         createExplosion(this.x, this.y, '#22c55e', 20); // Toxic green explosion
         synth.playDamage();
         
-        let dmg = 22 * (1 + (state.level - 1) * 0.40);
+        let levelFactor = state.level === 2 ? 0.20 : (state.level - 1) * 0.40;
+        let dmg = 22 * (1 + levelFactor);
         if (playerTarget.armor > 0) dmg *= (1 - playerTarget.armor);
         playerTarget.health -= dmg;
         
@@ -1345,7 +1394,7 @@ class Organism {
     // Drain health on close contact
     if (d < this.size + playerTarget.size + 5) {
       if (ticks % 12 === 0) {
-        let dmg = 5 * (1 + (state.level - 1) * 0.2);
+        let dmg = 3.5 * (1 + (state.level - 1) * 0.15); // Nerfed base damage & multiplier
         if (playerTarget.armor > 0) dmg *= (1 - playerTarget.armor);
         playerTarget.health -= dmg;
         // Heal vampire a little
@@ -1411,8 +1460,8 @@ class Organism {
       fireballs.push({
         x: this.x + Math.cos(this.angle) * this.size,
         y: this.y + Math.sin(this.angle) * this.size,
-        vx: Math.cos(this.angle) * 3.5,
-        vy: Math.sin(this.angle) * 3.5,
+        vx: Math.cos(this.angle) * 3.0,
+        vy: Math.sin(this.angle) * 3.0,
         size: 5,
         color: '#22c55e',
         isPoison: true,
@@ -1538,8 +1587,8 @@ class Organism {
     if (this.rageTimer > 0) this.rageTimer--;
 
     let level = (typeof state !== 'undefined' && state.level) ? state.level : 1;
-    let speedScale = 1 + (level - 1) * 0.08;
-    let dmgScale   = 1 + (level - 1) * 0.18;
+    let speedScale = level === 2 ? 1.04 : 1 + (level - 1) * 0.08;
+    let dmgScale   = level === 2 ? 1.08 : 1 + (level - 1) * 0.18;
 
     let phase = level <= 1 ? 1 : level === 2 ? 2 : level === 3 ? 3 : 4;
 
@@ -1809,32 +1858,37 @@ class Organism {
       // ----------------------------------------------------
       // FLOOR 4: ABYSS PALADIN (Blinks behind player, circle fireballs, reflects fireballs)
       // ----------------------------------------------------
-      this.shieldActive = false;
       this.spinActive = false;
 
-      // Reflect player fireballs
-      for (let fb of fireballs) {
-        if (fb.owner && fb.owner.isPlayer) {
-          let distToFb = Math.hypot(fb.x - this.x, fb.y - this.y);
-          if (distToFb < 120) {
-            fb.owner = this;
-            let angleToPlayer = Math.atan2(playerTarget.y - fb.y, playerTarget.x - fb.x);
-            fb.vx = Math.cos(angleToPlayer) * 8.0;
-            fb.vy = Math.sin(angleToPlayer) * 8.0;
-            
-            // Visual sparks
-            for (let k = 0; k < 5; k++) {
-              particles.push({
-                x: fb.x,
-                y: fb.y,
-                vx: (Math.random() - 0.5) * 4,
-                vy: (Math.random() - 0.5) * 4,
-                size: Math.random() * 3 + 1,
-                color: '#c084fc',
-                life: 15
-              });
+      // Shield active for 200 ticks (3.3s), inactive for 250 ticks (4.1s)
+      let cycle = ticks % 450;
+      this.shieldActive = (cycle < 200);
+
+      // Reflect player fireballs ONLY when shield is active
+      if (this.shieldActive) {
+        for (let fb of fireballs) {
+          if (fb.owner && fb.owner.isPlayer) {
+            let distToFb = Math.hypot(fb.x - this.x, fb.y - this.y);
+            if (distToFb < 120) {
+              fb.owner = this;
+              let angleToPlayer = Math.atan2(playerTarget.y - fb.y, playerTarget.x - fb.x);
+              fb.vx = Math.cos(angleToPlayer) * 8.0;
+              fb.vy = Math.sin(angleToPlayer) * 8.0;
+              
+              // Visual sparks
+              for (let k = 0; k < 5; k++) {
+                particles.push({
+                  x: fb.x,
+                  y: fb.y,
+                  vx: (Math.random() - 0.5) * 4,
+                  vy: (Math.random() - 0.5) * 4,
+                  size: Math.random() * 3 + 1,
+                  color: '#c084fc',
+                  life: 15
+                });
+              }
+              logRow("🔮 Паладин отразил ваш снаряд!", "warning");
             }
-            logRow("🔮 Паладин отразил ваш снаряд!", "warning");
           }
         }
       }
@@ -2663,23 +2717,20 @@ class Organism {
         let accentColor = state.activeSkin !== 'default' ? (this.glowColor || this.color) : (state.genes.chit1 ? '#a855f7' : '#f59e0b');
         let alert = this.alertLevel || 0;
 
-        // Cape segments (flowing behind)
-        if (this.segments && this.segments.length > 1) {
-          let capeColor = state.genes.chit1 ? '#4c1d95' : '#991b1b';
-          ctx.save();
-          for (let i = this.segments.length - 1; i >= 1; i--) {
-            let seg = this.segments[i];
-            let alpha = 1.0 - i / this.segments.length * 0.5;
-            ctx.fillStyle = capeColor.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
-            ctx.fillStyle = capeColor;
-            ctx.globalAlpha = alpha;
-            ctx.beginPath();
-            ctx.arc(seg.x - this.x, seg.y - this.y, this.size * (1.0 - i * 0.15), 0, Math.PI * 2);
-            ctx.fill();
-          }
-          ctx.globalAlpha = 1.0;
-          ctx.restore();
-        }
+        // Waving vector cape (flowing behind, wide cloak)
+        let capeColor = state.genes.chit1 ? '#4c1d95' : '#991b1b';
+        ctx.fillStyle = capeColor;
+        ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-this.size * 0.3, -this.size * 0.65);
+        ctx.lineTo(-this.size * 0.3, this.size * 0.65);
+        let wave = Math.sin(Date.now() * 0.008) * 0.12 * this.size;
+        ctx.lineTo(-this.size * 1.45, this.size * 0.85 + wave);
+        ctx.lineTo(-this.size * 1.45, -this.size * 0.85 + wave);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
 
         // Torso — full plate armor
         ctx.fillStyle = armorColor;
@@ -3019,6 +3070,17 @@ class Organism {
         ctx.lineTo(swx + Math.cos(this.angle + 0.3) * 28, swy + Math.sin(this.angle + 0.3) * 28);
         ctx.stroke();
         ctx.shadowBlur = 0;
+
+        // Draw reflecting barrier shield if active
+        if (this.shieldActive) {
+          ctx.strokeStyle = '#c084fc';
+          ctx.lineWidth = 4.5;
+          ctx.shadowBlur = 20; ctx.shadowColor = '#a855f7';
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size + 12, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
       }
 
       // Boss health bar
@@ -4252,7 +4314,7 @@ function throwToxicFlask(x, y, tx, ty, owner) {
   let dy = ty - y;
   let dist = Math.hypot(dx, dy);
   
-  let flyTime = Math.max(20, Math.min(50, Math.round(dist / 4.5)));
+  let flyTime = Math.max(30, Math.min(70, Math.round(dist / 3.2)));
   let vx = dx / flyTime;
   let vy = dy / flyTime;
   
@@ -4338,8 +4400,8 @@ function performPlayerAttack(clickAngle) {
   
   // 1. Shoot Fireball if player has SHH and is Stage 3+
   let shotFire = false;
-  if (state.genes.shh && state.stage >= 3 && player.energy > 12) {
-    player.energy = Math.max(0, player.energy - 10);
+  if (state.genes.shh && state.stage >= 3 && player.energy > 5) {
+    player.energy = Math.max(0, player.energy - 3);
     fireballs.push({
       x: player.x + Math.cos(player.angle) * player.size,
       y: player.y + Math.sin(player.angle) * player.size,
@@ -4368,7 +4430,7 @@ function performPlayerAttack(clickAngle) {
   // 2. Melee Attack / Bite (always available)
   if (!shotFire || (state.genes.shh && state.stage >= 3)) {
     // Melee attack costs a tiny bit of energy
-    let meleeCost = 2.0;
+    let meleeCost = 0.8;
     if (player.energy > meleeCost) {
       player.energy = Math.max(0, player.energy - meleeCost);
       
@@ -4434,12 +4496,7 @@ function performPlayerAttack(clickAngle) {
             // Handle death
             if (bot.health <= 0) {
               if (bot.type === 'boss') {
-                state.guardsDefeated += 5;
-                state.dna += 50;
-                state.gold += 50;
-                logRow("👑 Королевский Босс повержен! Путь к сокровищам свободен! +50 ДНК, +50 золота.", "gain");
-                createExplosion(bot.x, bot.y, '#f59e0b', 30);
-                portal = { x: bot.x, y: bot.y, active: true };
+                handleBossDeath(bot, 'melee');
               } else if (bot.type === 'guard') {
                 state.guardsDefeated++;
                 state.dna += 10;
@@ -4533,6 +4590,7 @@ function performPlayerAttack(clickAngle) {
   generateDungeonMap();
   
   resetEcosystem();
+  saveGame();
   gameActive = true;
   lastTime = performance.now();
   requestAnimationFrame(gameLoop);
@@ -4540,8 +4598,10 @@ function performPlayerAttack(clickAngle) {
 }
 
 function resetEcosystem(keepPlayer = false) {
+  portal = null;
   generateDungeonMap();
   relicPickups = [];
+  let lvl = state.level || 1;
   
   if (!keepPlayer || !player) {
     player = new Organism(150, 150, true, 'slime');
@@ -4563,7 +4623,6 @@ function resetEcosystem(keepPlayer = false) {
     let cy = r.y * TILE_SIZE + Math.floor(r.h / 2) * TILE_SIZE + 50;
     
     let enemyType = 'guard';
-    let lvl = state.level || 1;
     if (lvl === 2) {
       let roll = Math.random();
       if (roll < 0.20) enemyType = 'mage';
@@ -4587,10 +4646,15 @@ function resetEcosystem(keepPlayer = false) {
   let bossRoom = rooms[rooms.length - 1];
   let bx = bossRoom.x * TILE_SIZE + Math.floor(bossRoom.w / 2) * TILE_SIZE + 50;
   let by = bossRoom.y * TILE_SIZE + Math.floor(bossRoom.h / 2) * TILE_SIZE + 50;
-  bots.push(new Organism(bx, by, false, 'boss'));
+  if (lvl === 3) {
+    // Spawn two bosses for Level 3 as requested
+    bots.push(new Organism(bx - 50, by - 50, false, 'boss'));
+    bots.push(new Organism(bx + 50, by + 50, false, 'boss'));
+  } else {
+    bots.push(new Organism(bx, by, false, 'boss'));
+  }
   
   // Spawn extra guards/mages/bombers at higher floors to scale difficulty
-  let lvl = state.level || 1;
   let extraSpawns = Math.min(5, lvl - 1);
   for (let k = 0; k < extraSpawns; k++) {
     let rIdx = 1 + Math.floor(Math.random() * (rooms.length - 2));
@@ -4627,6 +4691,59 @@ function resetEcosystem(keepPlayer = false) {
   fireballs = [];
   particles = [];
   updateHUD();
+  showBossAnnouncement(lvl);
+}
+
+function showBossAnnouncement(lvl) {
+  let bossName = "";
+  let bossDesc = "";
+  if (lvl === 1) {
+    bossName = "Гигантский Слизень-Громила";
+    bossDesc = "Огромная мутировавшая масса, поглощающая всё на своем пути.";
+  } else if (lvl === 2) {
+    bossName = "Лорд-Алхимик Равенхольд";
+    bossDesc = "Создатель токсичных испарений, забрасывающий врагов склянками с ядом.";
+  } else if (lvl === 3) {
+    bossName = "Рыцари-Командоры Гвардии";
+    bossDesc = "Два грозных командира гвардии в тяжелой латунной броне. Будьте предельно осторожны!";
+  } else if (lvl === 4) {
+    bossName = "Абсолютный Паладин";
+    bossDesc = "Сильнейший воин королевства. Владеет блинк-телепортацией и круговыми ударами.";
+  } else {
+    bossName = `Древний Страж Эволюции (Ранг ${lvl})`;
+    bossDesc = "Невероятно сильное существо, порожденное алхимическими отходами замка.";
+  }
+  
+  // Log announcement in the chat log
+  logRow(`👑 ВНИМАНИЕ: На этом этаже обитает босс: ${bossName}!`, "danger");
+  logRow(`📖 Описание: ${bossDesc}`, "sys");
+  
+  // Create HTML screen announcement
+  let banner = document.createElement('div');
+  banner.id = 'boss-announcement-banner';
+  banner.className = 'boss-intro-banner';
+  banner.innerHTML = `
+    <div class="boss-intro-content">
+      <span class="boss-warning-tag">⚠️ КУЛЬМИНАЦИЯ ЭТАЖА ${lvl} ⚠️</span>
+      <h1 class="boss-intro-title">${bossName}</h1>
+      <p class="boss-intro-desc">${bossDesc}</p>
+    </div>
+  `;
+  
+  let container = document.getElementById('canvas-container');
+  if (container) {
+    // Remove existing banner if any
+    let old = document.getElementById('boss-announcement-banner');
+    if (old) old.remove();
+    
+    container.appendChild(banner);
+    
+    // Auto remove after 4.5 seconds
+    setTimeout(() => {
+      banner.classList.add('fade-out');
+      setTimeout(() => banner.remove(), 800);
+    }, 4000);
+  }
 }
 
 function spawnRat() {
@@ -4784,6 +4901,7 @@ function updatePhysics(dt) {
       portal = null;
       logRow(`🌀 Вы спустились на Этаж ${state.level}! Подземелье перестроилось, мобы стали сильнее!`, "sys");
       resetEcosystem(true);
+      saveGame();
       updateHUD();
     }
   } else if (state.transitionDirection === -1) {
@@ -4865,7 +4983,15 @@ function updatePhysics(dt) {
   if (portal && portal.active) {
     let distToPortal = Math.hypot(player.x - portal.x, player.y - portal.y);
     if (distToPortal < player.size + 20) {
-      startFloorTransition();
+      let aliveBosses = bots.filter(b => b.type === 'boss' && b.health > 0).length;
+      if (aliveBosses === 0) {
+        startFloorTransition();
+      } else {
+        if (!state.lastBossWarningTime || Date.now() - state.lastBossWarningTime > 2500) {
+          logRow(`⚠️ Лестница заблокирована! Вы должны победить всех боссов на этом этаже (${aliveBosses} осталось)!`, "warning");
+          state.lastBossWarningTime = Date.now();
+        }
+      }
     }
   }
 
@@ -4963,12 +5089,7 @@ function updatePhysics(dt) {
             let idx = bots.indexOf(bot);
             if (idx !== -1) bots.splice(idx, 1);
             if (bot.type === 'boss') {
-              state.guardsDefeated += 5;
-              state.dna += 50;
-              state.gold += 50;
-              logRow("👑 Королевский Босс повержен! Путь к сокровищам свободен! +50 ДНК, +50 золота.", "gain");
-              createExplosion(bot.x, bot.y, '#f59e0b', 30);
-              portal = { x: bot.x, y: bot.y, active: true };
+              handleBossDeath(bot, 'fireball');
             } else if (bot.type === 'guard') {
               state.guardsDefeated++;
               state.dna += 10;
@@ -5033,7 +5154,8 @@ function updatePhysics(dt) {
           fireballs.splice(i, 1);
           continue;
         }
-        let dmg = fb.owner ? fb.owner.damage * 2.5 : 15;
+        let isRanged = fb.owner && (fb.owner.type === 'mage' || fb.owner.type === 'shaman');
+        let dmg = fb.owner ? fb.owner.damage * (isRanged ? 1.25 : 2.5) : 15;
         if (player.armor > 0) dmg *= (1 - player.armor);
         player.health -= dmg;
         if (state.genes.shh && state.genes.rubisco && player.fireShieldCd === 0 && !fb.isShieldSpit) {
@@ -5102,13 +5224,7 @@ function updatePhysics(dt) {
       if (bot.health <= 0) {
         // Handle death
         if (bot.type === 'boss') {
-          state.guardsDefeated += 5;
-          state.dna += 50;
-          state.gold += 50;
-          state.crystals += 25;
-          logRow("👑 Королевский Босс сгорел в пламени! +50 ДНК, +50 золота, +25 💎.", "gain");
-          createExplosion(bot.x, bot.y, '#f59e0b', 30);
-          portal = { x: bot.x, y: bot.y, active: true };
+          handleBossDeath(bot, 'burn');
         } else {
           state.guardsDefeated++;
           state.dna += 10;
@@ -5595,22 +5711,33 @@ function drawScene() {
   
   // Spiral Stairs (transition exit portal)
   if (portal && portal.active) {
+    let aliveBosses = bots.filter(b => b.type === 'boss' && b.health > 0).length;
+    let isLocked = aliveBosses > 0;
+    
     gameCtx.fillStyle = '#1e293b';
     gameCtx.beginPath();
     gameCtx.arc(portal.x, portal.y, 35, 0, Math.PI * 2);
     gameCtx.fill();
     
-    // Stone frame
-    gameCtx.strokeStyle = '#475569';
-    gameCtx.lineWidth = 3.5;
+    // Stone frame (red glow if locked)
+    if (isLocked) {
+      gameCtx.shadowBlur = 15;
+      gameCtx.shadowColor = '#ef4444';
+      gameCtx.strokeStyle = '#ef4444';
+      gameCtx.lineWidth = 4.0;
+    } else {
+      gameCtx.strokeStyle = '#475569';
+      gameCtx.lineWidth = 3.5;
+    }
     gameCtx.stroke();
+    gameCtx.shadowBlur = 0; // reset
     
     // Spiral segments
-    gameCtx.strokeStyle = '#0f172a';
+    gameCtx.strokeStyle = isLocked ? '#450a0a' : '#0f172a';
     gameCtx.lineWidth = 2.0;
     for (let k = 0; k < 8; k++) {
-      let angle = k * (Math.PI / 4) + (Date.now() * 0.0005);
-      gameCtx.fillStyle = `rgba(15, 23, 42, ${1 - k * 0.12})`;
+      let angle = k * (Math.PI / 4) + (Date.now() * (isLocked ? 0.0001 : 0.0005));
+      gameCtx.fillStyle = isLocked ? `rgba(69, 10, 10, ${1 - k * 0.12})` : `rgba(15, 23, 42, ${1 - k * 0.12})`;
       gameCtx.beginPath();
       gameCtx.moveTo(portal.x, portal.y);
       gameCtx.arc(portal.x, portal.y, 35, angle, angle + Math.PI / 4);
@@ -5618,14 +5745,31 @@ function drawScene() {
       gameCtx.fill();
       gameCtx.stroke();
     }
+
+    if (isLocked) {
+      // Draw padlock emoji inside the portal
+      gameCtx.fillStyle = '#ef4444';
+      gameCtx.font = '16px sans-serif';
+      gameCtx.textAlign = 'center';
+      gameCtx.textBaseline = 'middle';
+      gameCtx.fillText('🔒', portal.x, portal.y);
+      gameCtx.textBaseline = 'alphabetic'; // reset
+    }
     
     // Draw help text
     let dist = Math.hypot(player.x - portal.x, player.y - portal.y);
     if (dist < 80) {
-      gameCtx.fillStyle = '#ffffff';
-      gameCtx.font = 'bold 8px Montserrat';
-      gameCtx.textAlign = 'center';
-      gameCtx.fillText("Спуститься по винтовой лестнице", portal.x, portal.y - 42);
+      if (isLocked) {
+        gameCtx.fillStyle = '#f87171';
+        gameCtx.font = 'bold 8px Montserrat';
+        gameCtx.textAlign = 'center';
+        gameCtx.fillText(`Лестница заблокирована! Боссов осталось: ${aliveBosses}`, portal.x, portal.y - 42);
+      } else {
+        gameCtx.fillStyle = '#ffffff';
+        gameCtx.font = 'bold 8px Montserrat';
+        gameCtx.textAlign = 'center';
+        gameCtx.fillText("Спуститься по винтовой лестнице", portal.x, portal.y - 42);
+      }
     }
   }
   
@@ -6678,6 +6822,7 @@ function triggerEvolution() {
   if (player.evolveProgress >= 100 && state.stage < 4) {
     state.stage++;
     state.generation++;
+    portal = null;
     
     player.evolveProgress = 0;
     player.health = player.maxHealth;
@@ -6723,9 +6868,14 @@ function triggerEvolution() {
     let bossRoom = rooms[rooms.length - 1];
     let bx = bossRoom.x * TILE_SIZE + Math.floor(bossRoom.w / 2) * TILE_SIZE + 50;
     let by = bossRoom.y * TILE_SIZE + Math.floor(bossRoom.h / 2) * TILE_SIZE + 50;
-    bots.push(new Organism(bx, by, false, 'boss'));
-
     let lvl = state.level || 1;
+    if (lvl === 3) {
+      bots.push(new Organism(bx - 50, by - 50, false, 'boss'));
+      bots.push(new Organism(bx + 50, by + 50, false, 'boss'));
+    } else {
+      bots.push(new Organism(bx, by, false, 'boss'));
+    }
+
     let extraSpawns = (state.stage >= 3 ? 2 : 0) + Math.min(3, lvl - 1);
     for (let k = 0; k < extraSpawns; k++) {
       let rIdx = 1 + Math.floor(Math.random() * (rooms.length - 2));
@@ -6767,16 +6917,194 @@ function triggerDeath() {
     return;
   }
   gameActive = false;
+  let btnLoad = document.getElementById('btn-load-save');
+  if (btnLoad) {
+    btnLoad.style.display = localStorage.getItem('evolutio_savegame') ? 'inline-block' : 'none';
+  }
   document.getElementById('death-overlay').classList.remove('hidden');
   synth.playDamage();
 }
 
+function handleBossDeath(bossBot, source) {
+  state.guardsDefeated += 5;
+  state.dna += 50;
+  state.gold += 50;
+  if (source === 'burn') {
+    state.crystals += 25;
+  }
+  createExplosion(bossBot.x, bossBot.y, '#f59e0b', 30);
+  
+  // Check if any other bosses are still alive
+  let otherBosses = bots.filter(b => b !== bossBot && b.type === 'boss' && b.health > 0).length;
+  if (otherBosses === 0) {
+    if (source === 'burn') {
+      logRow("👑 Королевский Босс сгорел в пламени! Путь к сокровищам свободен! +50 ДНК, +50 золота, +25 💎.", "gain");
+    } else {
+      logRow("👑 Королевский Босс повержен! Путь к сокровищам свободен! +50 ДНК, +50 золота.", "gain");
+    }
+    portal = { x: bossBot.x, y: bossBot.y, active: true };
+  } else {
+    logRow(`👑 Один из Боссов повержен! Осталось победить еще ${otherBosses} босса(ов) для открытия прохода!`, "warning");
+  }
+}
+
 function triggerVictory() {
   gameActive = false;
+  
+  let activeGenesCount = Object.values(state.genes).filter(v => v).length;
+  let speciesTitle = "Совершенный Организм";
+  let speciesDesc = "Ваша ДНК достигла баланса силы и интеллекта.";
+  
+  if (state.genes.shh && state.genes.chit1) {
+    speciesTitle = "Бронированный Пожиратель Пламени";
+    speciesDesc = "Слияние прочной хитиновой брони и способности извергать огонь сделало вас неуязвимым владыкой подземелья.";
+  } else if (state.genes.ldha && state.genes.acta1) {
+    speciesTitle = "Ртутный Сверххищник";
+    speciesDesc = "Сверхбыстрый метаболизм и развитые мышечные волокна превратили вас в молниеносную тень, разрывающую врагов за секунды.";
+  } else if (state.genes.rubisco && state.genes.opn1lw) {
+    speciesTitle = "Светоносный Хищник Глубин";
+    speciesDesc = "Вы научились поглощать энергию света факелов и видеть сквозь абсолютную тьму, доминируя в полумраке замка.";
+  } else if (state.genes.foxp2 && state.genes.mbp) {
+    speciesTitle = "Король Разума Улья";
+    speciesDesc = "Развитая нервная система и призыв летучих мышей-помощников создали коллективный разум, сокрушивший стражу.";
+  } else if (activeGenesCount >= 7) {
+    speciesTitle = "Химера Высшего Порядка";
+    speciesDesc = "Вы вобрали в себя слишком много мутаций, превратившись в нестабильное, но невероятно могущественное и опасное божество.";
+  }
+
+  let chronicleParts = [];
+  if (state.genes.rubisco) chronicleParts.push("🌱 <strong>Свет во мраке</strong>: Ваша способность к фотосинтезу (RuBisCO) позволила вам поглощать тепло факелов. Замок больше не является холодным склепом — вы наполнили его жизненным светом, превратив древние залы в процветающую био-экосистему.");
+  if (state.genes.shh) chronicleParts.push("🔥 <strong>Очищающий огонь</strong>: Благодаря железам извержения пламени (Sonic Hedgehog), вы испепелили трон жестокого короля. Тронный зал превратился в пепел, а огонь ваших вен теперь будет вечно согревать новые поколения вашего вида.");
+  if (state.genes.chit1) chronicleParts.push("🛡️ <strong>Несокрушимый оплот</strong>: Прочная хитиновая чешуя сделала вас неуязвимым для оружия королевских паладинов. Ваши потомки унаследуют эту броню, и ни один клинок смертных больше не сможет причинить вреда вашей расе.");
+  if (state.genes.ldha || state.genes.acta1) chronicleParts.push("⚡ <strong>Буря подземелья</strong>: Сверхмощные мышечные волокна и гликолиз позволили вам перемещаться быстрее ветра. В легендах людей вы останетесь стремительной молнией, пролетевшей сквозь залы замка и сокрушившей вековую тиранию.");
+  if (state.genes.opn1lw) chronicleParts.push("👁️ <strong>Всевидящее oko</strong>: Ваше ночное зрение, дарованное геном OPN1LW, позволило вам видеть во тьме. Вы ушли в самые глубокие пещеры под замком, чтобы основать подземную империю под присмотром ваших всевидящих глаз.");
+  if (state.genes.foxp2) chronicleParts.push("🦇 <strong>Улей нетопырей</strong>: Вы подчинили себе летучих мышей замка. Ваша верная стая разнесла весть о вашей победе по всему миру, провозглашая рождение нового Владыки Роя.");
+  if (state.genes.mbp) chronicleParts.push("🧠 <strong>Высший разум</strong>: Нейронная сеть вашего мозга развилась до невероятного уровня. Вы осознали суть алхимических процессов и теперь сами управляете ходом эволюции.");
+  if (chronicleParts.length === 0) chronicleParts.push("🐌 <strong>Путь адаптации</strong>: Без явных боевых мутаций вы смогли преодолеть все препятствия благодаря упорству и природным инстинктам выживания.");
+
+  let chronicleHtml = chronicleParts.map(p => '<p style="font-size:11px;line-height:1.4;color:#cbd5e1;margin:0 0 10px 0;border-bottom:1px dashed rgba(255,255,255,0.05);padding-bottom:6px;">' + p + '</p>').join('');
+
+  // === ОПРЕДЕЛЯЕМ ТИП КОНЦОВКИ ===
+  // Концовка 1 "Бог Эволюции": 7+ мутаций ИЛИ три мощных гена одновременно
+  // Концовка 2 "Возвращение к истокам": 0-2 мутации (чистый выживший)  
+  // Концовка 3 "Коронация Эволюции": 3-6 мутаций (балансный путь)
+  let endingType = 'balanced';
+  if (activeGenesCount >= 7 || (state.genes.shh && state.genes.chit1 && state.genes.ldha)) {
+    endingType = 'god';
+  } else if (activeGenesCount <= 2) {
+    endingType = 'nature';
+  }
+
+  const ENDINGS = {
+    god: {
+      title: "БОГ ЭВОЛЮЦИИ",
+      subtitle: "Апофеоз Генома",
+      color: "#a855f7",
+      glow: "rgba(168,85,247,0.5)",
+      bg: "rgba(15,5,30,0.97)",
+      icon: "⚗️",
+      epicText: "МУТАЦИЯ ЗАВЕРШЕНА. ВОЗНЕСЕНИЕ ДОСТИГНУТО.",
+      quoteColor: "#a855f7",
+      quoteBg: "rgba(168,85,247,0.08)",
+      textColor: "#c4b5fd",
+      quote: "«Эволюция — это не конечная точка. Это сам путь. Но сегодня вы достигли её горизонта и шагнули за него.»",
+      p1text: () => `Вы вобрали в себя <strong style="color:#e9d5ff;">${activeGenesCount} мутаций</strong> — столь колоссальное количество генетических изменений, что ваша ДНК перестала подчиняться законам природы. Вы больше не существо. Вы — <strong style="color:#f0abfc;">живая алхимическая реакция</strong>, непрекращающийся процесс, сама суть эволюции в физическом воплощении.`,
+      p2: "Когда Абсолютный Паладин пал, замок содрогнулся. Стены лопнули, выпуская наружу споры ваших генов. Каждый камень заразился вашей ДНК. Из трещин полезли организмы с вашим геномом. <strong style='color:#e9d5ff;'>Эволюция больше не случайна — теперь вы её архитектор.</strong>",
+      p3: "Через сто лет, когда новые существа откопают руины замка, они найдут лишь одну надпись на стенах: <em style='color:#f0abfc;'>«Здесь родился Бог Эволюции. И он ушёл дальше.»</em>"
+    },
+    nature: {
+      title: "ВОЗВРАЩЕНИЕ К ИСТОКАМ",
+      subtitle: "Чистый Путь Выживания",
+      color: "#10b981",
+      glow: "rgba(16,185,129,0.5)",
+      bg: "rgba(5,20,10,0.97)",
+      icon: "🌿",
+      epicText: "ПРИРОДНЫЙ ОТБОР ЗАВЕРШЁН. ВЫ — ИСТИННЫЙ ВЫЖИВШИЙ.",
+      quoteColor: "#10b981",
+      quoteBg: "rgba(16,185,129,0.08)",
+      textColor: "#6ee7b7",
+      quote: "«Истинная эволюция — не в количестве мутаций, а в способности выжить с тем, что дала природа.»",
+      p1text: () => `Вы прошли весь замок с <strong style="color:#a7f3d0;">${activeGenesCount <= 1 ? 'минимальными изменениями генома' : 'почти нетронутой ДНК'}</strong>. Никаких дополнительных органов, никаких искусственных усилений — лишь чистый природный инстинкт, доставшийся вам от миллионов поколений предков.`,
+      p2: "После победы над Паладином вы вышли из замка и растворились в лесу за его стенами. Алхимики искали вас неделями, но нашли только следы. <strong style='color:#a7f3d0;'>Природный отбор работает медленно, но безошибочно</strong> — и вы тому живое доказательство.",
+      p3: "Ваш вид начал тихую экспансию в леса. Без чужеродных генов, без мутагенных артефактов — <em style='color:#a7f3d0;'>только естественный путь эволюции, верный и неумолимый.</em> Через тысячи лет ваши потомки унаследуют мир."
+    },
+    balanced: {
+      title: "КОРОНАЦИЯ ЭВОЛЮЦИИ",
+      subtitle: "Баланс Силы и Мудрости",
+      color: "#f59e0b",
+      glow: "rgba(245,158,11,0.5)",
+      bg: "rgba(15,10,5,0.97)",
+      icon: "👑",
+      epicText: "ГЕНЕТИЧЕСКИЙ КОДЕКС ЗАПЕЧАТАН. ЗАМОК ЗАВОЁВАН.",
+      quoteColor: "#f59e0b",
+      quoteBg: "rgba(245,158,11,0.08)",
+      textColor: "#fcd34d",
+      quote: "«Эволюция — это компромисс. Слишком мало изменений — ты жертва. Слишком много — ты монстр. Ты нашёл путь между.»",
+      p1text: () => `Вооружившись <strong style="color:#fde68a;">${activeGenesCount} целенаправленными мутациями</strong>, вы сохранили связь с природой, но укрепили её эволюционными инструментами. Ни чрезмерная нестабильность, ни слепой консерватизм — <strong style="color:#fde68a;">совершенный баланс генетической адаптации.</strong>`,
+      p2: "С падением Абсолютного Паладина над замком взошло новое знамя. Ваш вид занял тронный зал и основал первую <strong style='color:#fde68a;'>эволюционную монархию</strong> — государство, где законы пишутся не мечом, а последовательностями ДНК.",
+      p3: "Алхимики, бежавшие из замка, разнесли весть по всему континенту: <em style='color:#fde68a;'>«Эволюция победила сталь. Геном сломил доспехи. Пришествие новой эпохи неизбежно.»</em>"
+    }
+  };
+
+  let ed = ENDINGS[endingType];
+
+  let storyHtml = `
+    <p style="font-size:12px;line-height:1.6;color:#e2e8f0;text-align:center;font-style:italic;border-left:3px solid ${ed.quoteColor};padding:10px 14px;margin:12px 0;background:${ed.quoteBg};border-radius:0 6px 6px 0;">${ed.quote}</p>
+    <p style="font-size:11px;line-height:1.5;color:${ed.textColor};margin:0 0 10px 0;">${ed.p1text()}</p>
+    <p style="font-size:11px;line-height:1.5;color:${ed.textColor};margin:0 0 10px 0;">${ed.p2}</p>
+    <p style="font-size:11px;line-height:1.5;color:${ed.textColor};margin:0;">${ed.p3}</p>
+  `;
+
+  let html = `
+    <div style="margin:8px 0;padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:6px;text-align:left;">
+      ${storyHtml}
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);">
+        <h3 style="color:${ed.color};margin:0 0 8px 0;text-align:center;font-family:'Cinzel',serif;letter-spacing:1px;font-size:13px;">🧬 Итоговый вид: ${speciesTitle}</h3>
+        <p style="font-size:10px;font-style:italic;color:#94a3b8;text-align:center;margin-bottom:10px;line-height:1.35;">"${speciesDesc}"</p>
+      </div>
+      <div style="max-height:130px;overflow-y:auto;margin-bottom:10px;padding:8px 10px;background:rgba(0,0,0,0.3);border-radius:4px;border-left:3px solid ${ed.color};">
+        <h4 style="color:${ed.color};font-size:10px;margin-top:0;margin-bottom:8px;font-family:'Share Tech Mono',monospace;text-transform:uppercase;letter-spacing:1px;">📜 ХРОНИКИ ВАШЕГО ВИДА:</h4>
+        ${chronicleHtml}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;font-family:'Share Tech Mono',monospace;">
+        <div>💀 Побеждено рыцарей: <strong style="color:#ef4444;">${state.guardsDefeated}</strong></div>
+        <div>💰 Золота собрано: <strong style="color:#facc15;">${state.gold}</strong></div>
+        <div>🧬 Накоплено ДНК: <strong style="color:#a855f7;">${state.dna}</strong></div>
+        <div>🧬 Мутаций открыто: <strong style="color:#22d3ee;">${activeGenesCount} / 10</strong></div>
+      </div>
+    </div>
+  `;
+
   let victoryOverlay = document.getElementById('victory-overlay');
-  if (victoryOverlay) victoryOverlay.classList.remove('hidden');
-  synth.playEvolve();
+  if (victoryOverlay) {
+    victoryOverlay.style.background = ed.bg;
+    victoryOverlay.style.borderColor = ed.color;
+    victoryOverlay.style.boxShadow = `0 0 40px ${ed.glow}, inset 0 0 15px ${ed.glow.replace('0.5', '0.1')}`;
+    let titleEl = victoryOverlay.querySelector('h2');
+    if (titleEl) {
+      titleEl.textContent = ed.icon + ' ' + ed.title;
+      titleEl.style.color = ed.color;
+      titleEl.style.textShadow = `0 0 15px ${ed.glow}`;
+    }
+    let subtitleEl = victoryOverlay.querySelector('p');
+    if (subtitleEl) {
+      subtitleEl.innerHTML = `<span style="font-size:10px;font-family:'Share Tech Mono',monospace;letter-spacing:2px;color:${ed.color};opacity:0.8;">${ed.epicText}</span><br/><br/><em>${ed.subtitle}</em>`;
+    }
+    let btn = victoryOverlay.querySelector('button');
+    if (btn) {
+      btn.style.background = `linear-gradient(135deg, ${ed.color}, ${ed.color}99)`;
+      btn.style.borderColor = ed.color;
+      btn.style.boxShadow = `0 0 15px ${ed.glow}`;
+    }
+    victoryOverlay.classList.remove('hidden');
+  }
+
+  let statsContainer = document.getElementById('victory-stats');
+  if (statsContainer) statsContainer.innerHTML = html;
+
+  synth.playVictorySong();
 }
+
 
 function restartSimulation() {
   let deathOverlay = document.getElementById('death-overlay');
@@ -6801,6 +7129,7 @@ function restartSimulation() {
   recreateDrones();
   
   resetEcosystem();
+  saveGame();
   gameActive = true;
   lastTime = performance.now();
   requestAnimationFrame(gameLoop);
@@ -6915,3 +7244,99 @@ function buyCrystalItem(id, price) {
 window.openCrystalShop = openCrystalShop;
 window.closeCrystalShop = closeCrystalShop;
 window.buyCrystalItem = buyCrystalItem;
+
+// ==========================================
+// CHECKPOINT LEVEL SAVE / LOAD SYSTEM
+// ==========================================
+function saveGame() {
+  if (!player) return;
+  const saveData = {
+    state: {
+      level: state.level,
+      stage: state.stage,
+      dna: state.dna,
+      gold: state.gold,
+      crystals: state.crystals,
+      guardsDefeated: state.guardsDefeated,
+      generation: state.generation,
+      activeSkin: state.activeSkin,
+      dnaBoostEnd: state.dnaBoostEnd,
+      deathShield: state.deathShield,
+      relics: Object.assign({}, state.relics),
+      genes: Object.assign({}, state.genes)
+    },
+    player: {
+      health: player.health,
+      maxHealth: player.maxHealth,
+      energy: player.energy,
+      maxEnergy: player.maxEnergy,
+      statLevels: Object.assign({}, player.statLevels)
+    }
+  };
+  localStorage.setItem('evolutio_savegame', JSON.stringify(saveData));
+  logRow(`💾 Прогресс сохранен (Начало этажа ${state.level})`, 'sys');
+}
+
+function loadGame() {
+  const saveStr = localStorage.getItem('evolutio_savegame');
+  if (!saveStr) return false;
+  
+  try {
+    const saveData = JSON.parse(saveStr);
+    
+    // Restore state values
+    state.level = saveData.state.level;
+    state.stage = saveData.state.stage;
+    state.dna = saveData.state.dna;
+    state.gold = saveData.state.gold;
+    state.crystals = saveData.state.crystals;
+    state.guardsDefeated = saveData.state.guardsDefeated;
+    state.generation = saveData.state.generation;
+    state.activeSkin = saveData.state.activeSkin;
+    state.dnaBoostEnd = saveData.state.dnaBoostEnd;
+    state.deathShield = saveData.state.deathShield;
+    
+    state.relics = Object.assign({}, saveData.state.relics);
+    state.genes = Object.assign({}, saveData.state.genes);
+    
+    // Recreate ecosystem for this floor
+    resetEcosystem(true);
+    
+    // Restore player attributes
+    player.health = saveData.player.health;
+    player.maxHealth = saveData.player.maxHealth;
+    player.energy = saveData.player.energy;
+    player.maxEnergy = saveData.player.maxEnergy;
+    player.statLevels = Object.assign({}, saveData.player.statLevels);
+    
+    player.applyPlayerGenes();
+    updateHUD();
+    
+    return true;
+  } catch (e) {
+    console.error('Error loading save:', e);
+    return false;
+  }
+}
+
+function loadSimulationSave() {
+  let deathOverlay = document.getElementById('death-overlay');
+  if (deathOverlay) deathOverlay.classList.add('hidden');
+  let victoryOverlay = document.getElementById('victory-overlay');
+  if (victoryOverlay) victoryOverlay.classList.add('hidden');
+  
+  let loaded = loadGame();
+  if (loaded) {
+    gameActive = true;
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+    logRow("[СИСТЕМА] Прогресс восстановлен с начала этажа.", "sys");
+  } else {
+    logRow("[ОШИБКА] Не удалось загрузить сохранение.", "danger");
+    restartSimulation();
+  }
+}
+
+window.saveGame = saveGame;
+window.loadGame = loadGame;
+window.loadSimulationSave = loadSimulationSave;
