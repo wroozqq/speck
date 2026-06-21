@@ -1,4 +1,22 @@
-﻿// ==========================================
+window.onerror = function(message, source, lineno, colno, error) {
+  console.error("Global Error caught:", message, "at", source, lineno, colno, error);
+  let logBox = document.getElementById('terminal-log-box');
+  if (logBox) {
+    let row = document.createElement('div');
+    row.className = 'log-row danger';
+    row.innerText = "[КРИТИЧЕСКАЯ ОШИБКА] " + message + " (Строка: " + lineno + ":" + colno + ")";
+    logBox.appendChild(row);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+  let errBanner = document.getElementById('current-era-title');
+  if (errBanner) {
+    errBanner.innerText = "ОШИБКА: " + message;
+    errBanner.style.color = "#ef4444";
+  }
+  return false;
+};
+
+// ==========================================
 // CASTLE-FORGE: MEDIEVAL DUNGEON CRAWLER ENGINE (2D REALTIME EVOLUTION)
 // ==========================================
 
@@ -73,15 +91,18 @@ const state = {
   }
 };
 
-// Intercept state.gold and state.dna modifications for amulet relic bonus (+50% gains)
+// Intercept state.gold, state.dna, and state.crystals modifications for juice and amulet relics
 let _dna = 40;
 let _gold = 0;
+let _crystals = 0;
 delete state.dna;
 delete state.gold;
+delete state.crystals;
+
 Object.defineProperty(state, 'dna', {
   get() { return _dna; },
   set(val) {
-    if (val === 40) {
+    if (val === 40 && _dna === 40) {
       _dna = 40;
       return;
     }
@@ -94,14 +115,29 @@ Object.defineProperty(state, 'dna', {
       diff = diff * 2;
     }
     _dna = _dna + diff;
+    
+    if (diff !== 0 && typeof gameActive !== 'undefined' && gameActive && typeof player !== 'undefined' && typeof particles !== 'undefined') {
+      particles.push({
+        x: player.x + (Math.random() - 0.5) * 14,
+        y: player.y - player.size - 12,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: -1.2 - Math.random() * 0.8,
+        size: 0,
+        color: '#a855f7',
+        life: 40,
+        isExclamation: true,
+        text: (diff > 0 ? "+" : "") + diff + " DNA"
+      });
+    }
   },
   configurable: true,
   enumerable: true
 });
+
 Object.defineProperty(state, 'gold', {
   get() { return _gold; },
   set(val) {
-    if (val === 0) {
+    if (val === 0 && _gold === 0) {
       _gold = 0;
       return;
     }
@@ -110,6 +146,44 @@ Object.defineProperty(state, 'gold', {
       diff = Math.round(diff * 1.5);
     }
     _gold = _gold + diff;
+    
+    if (diff !== 0 && typeof gameActive !== 'undefined' && gameActive && typeof player !== 'undefined' && typeof particles !== 'undefined') {
+      particles.push({
+        x: player.x + (Math.random() - 0.5) * 14,
+        y: player.y - player.size - 12,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: -1.2 - Math.random() * 0.8,
+        size: 0,
+        color: '#facc15',
+        life: 40,
+        isExclamation: true,
+        text: (diff > 0 ? "+" : "") + diff + " 🪙"
+      });
+    }
+  },
+  configurable: true,
+  enumerable: true
+});
+
+Object.defineProperty(state, 'crystals', {
+  get() { return _crystals; },
+  set(val) {
+    let diff = val - _crystals;
+    _crystals = val;
+    
+    if (diff !== 0 && typeof gameActive !== 'undefined' && gameActive && typeof player !== 'undefined' && typeof particles !== 'undefined') {
+      particles.push({
+        x: player.x + (Math.random() - 0.5) * 14,
+        y: player.y - player.size - 12,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: -1.2 - Math.random() * 0.8,
+        size: 0,
+        color: '#38bdf8',
+        life: 40,
+        isExclamation: true,
+        text: (diff > 0 ? "+" : "") + diff + " 💎"
+      });
+    }
   },
   configurable: true,
   enumerable: true
@@ -546,11 +620,11 @@ class Organism {
     let hNodes = 4;
     let oNodes = 2;
     
+    this.brain = parentBrain ? parentBrain.clone() : new NeuralNetwork(inputs, hNodes, oNodes);
+    
     if (this.isPlayer) {
       this.applyPlayerGenes();
     }
-    
-    this.brain = parentBrain ? parentBrain.clone() : new NeuralNetwork(inputs, hNodes, oNodes);
     
     // Visual Colors
     if (this.isPlayer) {
@@ -750,6 +824,40 @@ class Organism {
     logRow(genInfo, "adapt");
   }
   
+  get health() {
+    return this._health;
+  }
+  set health(val) {
+    let oldVal = this._health;
+    this._health = val;
+    let diff = val - oldVal;
+    if (oldVal !== undefined && Math.abs(diff) >= 1.0 && typeof gameActive !== 'undefined' && gameActive) {
+      let txt = "";
+      let color = "#fff";
+      if (diff < 0) {
+        txt = Math.round(Math.abs(diff)).toString();
+        color = this.isPlayer ? "#ef4444" : "#f97316";
+      } else {
+        txt = "+" + Math.round(diff).toString();
+        color = "#22d3ee";
+      }
+      
+      if (typeof particles !== 'undefined') {
+        particles.push({
+          x: this.x + (Math.random() - 0.5) * 8,
+          y: this.y - this.size - 6,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: -1.0 - Math.random() * 0.8,
+          size: 0,
+          color: color,
+          life: 30,
+          isExclamation: true,
+          text: txt
+        });
+      }
+    }
+  }
+
   get size() {
     return this.baseSize * this.sizeScale;
   }
@@ -2098,6 +2206,15 @@ class Organism {
         this.type = 'guard';
       }
     }
+    
+    // Draw creature drop shadow on floor
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.beginPath();
+    ctx.ellipse(this.x, this.y + this.size * 0.35, this.size * 0.95, this.size * 0.45, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
     // Draw ghost trail if sprinting
     if (this.sprinting && this.trail && this.trail.length > 0) {
       ctx.save();
@@ -4401,7 +4518,8 @@ function performPlayerAttack(clickAngle) {
   // 1. Shoot Fireball if player has SHH and is Stage 3+
   let shotFire = false;
   if (state.genes.shh && state.stage >= 3 && player.energy > 5) {
-    player.energy = Math.max(0, player.energy - 3);
+    let fireballCost = state.level >= 2 ? 1.5 : 3;
+    player.energy = Math.max(0, player.energy - fireballCost);
     fireballs.push({
       x: player.x + Math.cos(player.angle) * player.size,
       y: player.y + Math.sin(player.angle) * player.size,
@@ -4429,8 +4547,8 @@ function performPlayerAttack(clickAngle) {
   
   // 2. Melee Attack / Bite (always available)
   if (!shotFire || (state.genes.shh && state.stage >= 3)) {
-    // Melee attack costs a tiny bit of energy
-    let meleeCost = 0.8;
+    // Melee attack costs a tiny bit of energy (reduced from lvl 2+)
+    let meleeCost = state.level >= 2 ? 0.3 : 0.8;
     if (player.energy > meleeCost) {
       player.energy = Math.max(0, player.energy - meleeCost);
       
@@ -4798,8 +4916,12 @@ function openNearbyChest() {
       state.crystals += 10;
       
       if (state.level >= 4) {
-        triggerVictory();
-        return;
+        // On level 4, Royal Chest gives huge bonus but does NOT end the game
+        // Victory only triggers after defeating the Final Boss and stepping through the portal
+        state.gold += 80;
+        state.dna += 80;
+        state.crystals += 20;
+        logRow("👑 КОРОЛЕВСКИЙ КЛАД! Огромный бонус получен. Но финальный босс ещё стоит на пути!", "adapt");
       }
       
       // Spawn Relic!
@@ -4985,7 +5107,11 @@ function updatePhysics(dt) {
     if (distToPortal < player.size + 20) {
       let aliveBosses = bots.filter(b => b.type === 'boss' && b.health > 0).length;
       if (aliveBosses === 0) {
-        startFloorTransition();
+        if (state.level >= 4) {
+          triggerVictory();
+        } else {
+          startFloorTransition();
+        }
       } else {
         if (!state.lastBossWarningTime || Date.now() - state.lastBossWarningTime > 2500) {
           logRow(`⚠️ Лестница заблокирована! Вы должны победить всех боссов на этом этаже (${aliveBosses} осталось)!`, "warning");
@@ -5413,6 +5539,10 @@ function updatePhysics(dt) {
 
 function drawScene() {
   if (!gameCtx) return;
+  if (!window.loggedPlayerState && typeof player !== 'undefined' && player) {
+    window.loggedPlayerState = true;
+    logRow(`[ТЕСТ] Игрок: x=${Math.round(player.x)}, y=${Math.round(player.y)}, size=${Math.round(player.size)}, hp=${player.health}, color=${player.color}, stage=${state.stage}`, "sys");
+  }
   
   let level = (typeof state !== 'undefined' && state.level) ? state.level : 1;
   
@@ -5460,10 +5590,10 @@ function drawScene() {
           gameCtx.strokeStyle = '#cbd5e1';
           gameCtx.lineWidth = 1;
         } else {
-          // Grey stone floor
-          gameCtx.fillStyle = '#0f1015';
+          // Grey stone floor (brightened slightly for better visibility under torchlight)
+          gameCtx.fillStyle = '#181922';
           gameCtx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-          gameCtx.strokeStyle = '#181922';
+          gameCtx.strokeStyle = '#252733';
           gameCtx.lineWidth = 1;
         }
         
@@ -5488,9 +5618,9 @@ function drawScene() {
               else if (hash === 1) gameCtx.fillStyle = '#f1f5f9';
               else gameCtx.fillStyle = '#e2e8f0';
             } else {
-              if (hash === 0) gameCtx.fillStyle = '#111218';
-              else if (hash === 1) gameCtx.fillStyle = '#0e0f14';
-              else gameCtx.fillStyle = '#13141c';
+              if (hash === 0) gameCtx.fillStyle = '#1d1f28';
+              else if (hash === 1) gameCtx.fillStyle = '#171920';
+              else gameCtx.fillStyle = '#22242e';
             }
             
             gameCtx.fillRect(tx, ty, tileSize, tileSize);
@@ -5863,13 +5993,13 @@ function drawScene() {
         if (level === 2) gameCtx.fillStyle = '#102214'; // lock/moss green wall
         else if (level === 3) gameCtx.fillStyle = '#221010'; // obsidian/lavic wall
         else if (level >= 4) gameCtx.fillStyle = '#2d2613'; // golden wall
-        else gameCtx.fillStyle = '#1c1e28'; // standard gray wall
+        else gameCtx.fillStyle = '#333545'; // standard gray wall (brightened slightly for visibility)
         
         gameCtx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
         
         let rowH = TILE_SIZE / 4;
         let brickW = TILE_SIZE / 2;
-        gameCtx.strokeStyle = level === 2 ? '#08120a' : level === 3 ? '#100505' : level >= 4 ? '#181206' : '#0c0d12';
+        gameCtx.strokeStyle = level === 2 ? '#08120a' : level === 3 ? '#100505' : level >= 4 ? '#181206' : '#1d1f2b';
         gameCtx.lineWidth = 2.0;
         
         for (let r = 0; r < 4; r++) {
@@ -5980,7 +6110,6 @@ function drawScene() {
   for (let t of torches) {
     let glow = 80 + Math.sin(Date.now() * 0.009) * 15;
     let radGrad = gameCtx.createRadialGradient(t.x, t.y, 2, t.x, t.y, glow);
-    
     let torchColorStr = level === 2 ? '34, 197, 94' : level === 3 ? '168, 85, 247' : level >= 4 ? '240, 246, 252' : '255, 110, 0';
     radGrad.addColorStop(0, `rgba(${torchColorStr}, 0.25)`);
     radGrad.addColorStop(0.5, `rgba(${torchColorStr}, 0.06)`);
@@ -6077,15 +6206,59 @@ function drawScene() {
   for (let b of drones) b.draw(gameCtx);
   player.draw(gameCtx);
   
-  // Darkness fog mask
-  let fogGrad = gameCtx.createRadialGradient(player.x, player.y, lightRad * 0.45, player.x, player.y, lightRad);
-  fogGrad.addColorStop(0, 'rgba(0,0,0,0)');
-  fogGrad.addColorStop(1, 'rgba(3,3,5,0.92)');
+  // Darkness fog mask — draw on offscreen canvas to avoid erasing main canvas pixels
+  if (!window.lightCanvas) {
+    window.lightCanvas = document.createElement('canvas');
+    window.lightCtx = window.lightCanvas.getContext('2d');
+  }
+  if (window.lightCanvas.width !== gameCanvas.width || window.lightCanvas.height !== gameCanvas.height) {
+    window.lightCanvas.width = gameCanvas.width;
+    window.lightCanvas.height = gameCanvas.height;
+  }
   
-  gameCtx.fillStyle = fogGrad;
-  gameCtx.beginPath();
-  gameCtx.arc(player.x, player.y, lightRad * 2.5, 0, Math.PI * 2);
-  gameCtx.fill();
+  let lCtx = window.lightCtx;
+  lCtx.fillStyle = 'rgba(3, 3, 5, 0.94)';
+  lCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+  
+  lCtx.globalCompositeOperation = 'destination-out';
+  let cx = gameCanvas.width / 2;
+  let cy = gameCanvas.height / 2;
+  let screenLightRad = lightRad * zoom;
+  
+  // Punch light hole for player
+  let fogGrad = lCtx.createRadialGradient(cx, cy, screenLightRad * 0.38, cx, cy, screenLightRad);
+  fogGrad.addColorStop(0, 'rgba(0,0,0,1)');
+  fogGrad.addColorStop(0.65, 'rgba(0,0,0,0.88)');
+  fogGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  lCtx.fillStyle = fogGrad;
+  lCtx.beginPath();
+  lCtx.arc(cx, cy, screenLightRad, 0, Math.PI * 2);
+  lCtx.fill();
+  
+  // Punch light holes for torches (aesthetic enhancement)
+  for (let t of torches) {
+    let tx = (t.x - player.x) * zoom + cx;
+    let ty = (t.y - player.y) * zoom + cy;
+    let tGlow = (80 + Math.sin(Date.now() * 0.009) * 15) * zoom;
+    if (tx >= -tGlow && tx <= gameCanvas.width + tGlow && ty >= -tGlow && ty <= gameCanvas.height + tGlow) {
+      let torchGrad = lCtx.createRadialGradient(tx, ty, tGlow * 0.1, tx, ty, tGlow);
+      torchGrad.addColorStop(0, 'rgba(0,0,0,0.75)');
+      torchGrad.addColorStop(0.5, 'rgba(0,0,0,0.2)');
+      torchGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      lCtx.fillStyle = torchGrad;
+      lCtx.beginPath();
+      lCtx.arc(tx, ty, tGlow, 0, Math.PI * 2);
+      lCtx.fill();
+    }
+  }
+  
+  lCtx.globalCompositeOperation = 'source-over';
+  
+  // Render the lighting mask onto the main screen
+  gameCtx.save();
+  gameCtx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform to screen space
+  gameCtx.drawImage(window.lightCanvas, 0, 0);
+  gameCtx.restore();
   
   // Particles
   for (let p of particles) {
@@ -6948,6 +7121,69 @@ function handleBossDeath(bossBot, source) {
   }
 }
 
+function showVictoryCinematic(endingType, onComplete) {
+  // Create or reuse the cinematic overlay
+  let el = document.getElementById('victory-cinematic');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'victory-cinematic';
+    document.body.appendChild(el);
+  }
+
+  const cfg = {
+    god: {
+      color: '#a855f7', label: '⚗️  АПОФЕОЗ  ⚗️',
+      main: 'БОГ ЭВОЛЮЦИИ', sub: 'Геном преступил границы природы',
+      lines: ['Вы вобрали в себя больше мутаций,', 'чем выдерживает само бытие.', 'Эволюция завершена. Вознесение достигнуто.']
+    },
+    nature: {
+      color: '#10b981', label: '🌿  ЧИСТЫЙ ПУТЬ  🌿',
+      main: 'ВОЗВРАЩЕНИЕ К ИСТОКАМ', sub: 'Природный отбор завершён',
+      lines: ['Без мутаций. Без артефактов.', 'Лишь воля к выживанию.', 'Природа выбрала вас.']
+    },
+    balanced: {
+      color: '#f59e0b', label: '👑  ПОБЕДА  👑',
+      main: 'КОРОНАЦИЯ ЭВОЛЮЦИИ', sub: 'Баланс силы и мудрости достигнут',
+      lines: ['Замок пал. Паладин повержен.', 'Ваш вид занял тронный зал.', 'Новая эпоха начинается.']
+    }
+  };
+
+  const c = cfg[endingType] || cfg.balanced;
+
+  el.innerHTML = `
+    <div class="vc-line vc-line-small" id="vc1" style="color:${c.color}aa;">${c.label}</div>
+    <div class="vc-separator" id="vcsep1" style="background:${c.color};"></div>
+    <div class="vc-line vc-line-main" id="vc2" style="color:${c.color};">${c.main}</div>
+    <div class="vc-line vc-line-sub" id="vc3">${c.sub}</div>
+    <div class="vc-separator" id="vcsep2" style="background:${c.color}55;"></div>
+    ${c.lines.map((l,i) => `<div class="vc-line" id="vcl${i}" style="font-size:clamp(11px,1.3vw,14px);color:#cbd5e1;margin:4px 0;letter-spacing:1px;">${l}</div>`).join('')}
+  `;
+
+  // Show overlay
+  el.classList.add('show');
+
+  // Stagger each line in
+  const ids = ['vc1','vcsep1','vc2','vc3','vcsep2',...c.lines.map((_,i)=>'vcl'+i)];
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      const node = document.getElementById(id);
+      if (node) node.classList.add('appear');
+      if (id === 'vc2') { const n = document.getElementById('vc2'); if(n) n.classList.add('glow'); }
+    }, 300 + i * 350);
+  });
+
+  // After all lines shown, wait then fade out and call onComplete
+  const totalDelay = 300 + ids.length * 350 + 1800;
+  setTimeout(() => {
+    el.style.transition = 'opacity 1.4s ease';
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.style.display = 'none';
+      if (onComplete) onComplete();
+    }, 1400);
+  }, totalDelay);
+}
+
 function triggerVictory() {
   gameActive = false;
   
@@ -7049,32 +7285,36 @@ function triggerVictory() {
   let ed = ENDINGS[endingType];
 
   let storyHtml = `
-    <p style="font-size:12px;line-height:1.6;color:#e2e8f0;text-align:center;font-style:italic;border-left:3px solid ${ed.quoteColor};padding:10px 14px;margin:12px 0;background:${ed.quoteBg};border-radius:0 6px 6px 0;">${ed.quote}</p>
-    <p style="font-size:11px;line-height:1.5;color:${ed.textColor};margin:0 0 10px 0;">${ed.p1text()}</p>
-    <p style="font-size:11px;line-height:1.5;color:${ed.textColor};margin:0 0 10px 0;">${ed.p2}</p>
-    <p style="font-size:11px;line-height:1.5;color:${ed.textColor};margin:0;">${ed.p3}</p>
+    <p style="font-size:11px;line-height:1.5;color:#e2e8f0;text-align:center;font-style:italic;border-left:3px solid ${ed.quoteColor};padding:8px 12px;margin:0 0 8px 0;background:${ed.quoteBg};border-radius:0 6px 6px 0;">${ed.quote}</p>
+    <p style="font-size:10px;line-height:1.45;color:${ed.textColor};margin:0 0 7px 0;">${ed.p1text()}</p>
+    <p style="font-size:10px;line-height:1.45;color:${ed.textColor};margin:0 0 7px 0;">${ed.p2}</p>
+    <p style="font-size:10px;line-height:1.45;color:${ed.textColor};margin:0;">${ed.p3}</p>
   `;
 
   let html = `
-    <div style="margin:8px 0;padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:6px;text-align:left;">
-      ${storyHtml}
-      <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);">
-        <h3 style="color:${ed.color};margin:0 0 8px 0;text-align:center;font-family:'Cinzel',serif;letter-spacing:1px;font-size:13px;">🧬 Итоговый вид: ${speciesTitle}</h3>
-        <p style="font-size:10px;font-style:italic;color:#94a3b8;text-align:center;margin-bottom:10px;line-height:1.35;">"${speciesDesc}"</p>
+    <div style="margin:4px 0;padding:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:6px;text-align:left;">
+      <div style="max-height:160px;overflow-y:auto;margin-bottom:8px;scrollbar-width:thin;scrollbar-color:${ed.color}33 transparent;">
+        ${storyHtml}
       </div>
-      <div style="max-height:130px;overflow-y:auto;margin-bottom:10px;padding:8px 10px;background:rgba(0,0,0,0.3);border-radius:4px;border-left:3px solid ${ed.color};">
-        <h4 style="color:${ed.color};font-size:10px;margin-top:0;margin-bottom:8px;font-family:'Share Tech Mono',monospace;text-transform:uppercase;letter-spacing:1px;">📜 ХРОНИКИ ВАШЕГО ВИДА:</h4>
+      <div style="padding-top:8px;border-top:1px solid rgba(255,255,255,0.1);margin-bottom:6px;">
+        <h3 style="color:${ed.color};margin:0 0 4px 0;text-align:center;font-family:'Cinzel',serif;letter-spacing:1px;font-size:12px;">🧬 Итоговый вид: ${speciesTitle}</h3>
+        <p style="font-size:9px;font-style:italic;color:#94a3b8;text-align:center;margin:0;line-height:1.3;">"${speciesDesc}"</p>
+      </div>
+      <div style="max-height:100px;overflow-y:auto;margin-bottom:8px;padding:6px 8px;background:rgba(0,0,0,0.3);border-radius:4px;border-left:3px solid ${ed.color};scrollbar-width:thin;scrollbar-color:${ed.color}33 transparent;">
+        <h4 style="color:${ed.color};font-size:9px;margin:0 0 5px 0;font-family:'Share Tech Mono',monospace;text-transform:uppercase;letter-spacing:1px;">📜 ХРОНИКИ ВАШЕГО ВИДА:</h4>
         ${chronicleHtml}
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:10px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;font-family:'Share Tech Mono',monospace;">
-        <div>💀 Побеждено рыцарей: <strong style="color:#ef4444;">${state.guardsDefeated}</strong></div>
-        <div>💰 Золота собрано: <strong style="color:#facc15;">${state.gold}</strong></div>
-        <div>🧬 Накоплено ДНК: <strong style="color:#a855f7;">${state.dna}</strong></div>
-        <div>🧬 Мутаций открыто: <strong style="color:#22d3ee;">${activeGenesCount} / 10</strong></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:9px;border-top:1px solid rgba(255,255,255,0.1);padding-top:6px;font-family:'Share Tech Mono',monospace;">
+        <div>💀 Рыцарей: <strong style="color:#ef4444;">${state.guardsDefeated}</strong></div>
+        <div>💰 Золото: <strong style="color:#facc15;">${state.gold}</strong></div>
+        <div>🧬 ДНК: <strong style="color:#a855f7;">${state.dna}</strong></div>
+        <div>🧬 Мутаций: <strong style="color:#22d3ee;">${activeGenesCount} / 10</strong></div>
       </div>
     </div>
   `;
 
+
+  showVictoryCinematic(endingType, () => {
   let victoryOverlay = document.getElementById('victory-overlay');
   if (victoryOverlay) {
     victoryOverlay.style.background = ed.bg;
@@ -7098,13 +7338,12 @@ function triggerVictory() {
     }
     victoryOverlay.classList.remove('hidden');
   }
+    let statsContainer = document.getElementById('victory-stats');
+    if (statsContainer) statsContainer.innerHTML = html;
 
-  let statsContainer = document.getElementById('victory-stats');
-  if (statsContainer) statsContainer.innerHTML = html;
-
-  synth.playVictorySong();
+    synth.playVictorySong();
+  });
 }
-
 
 function restartSimulation() {
   let deathOverlay = document.getElementById('death-overlay');

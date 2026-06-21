@@ -43,6 +43,7 @@ const mockElement = {
   children: []
 };
 mockElement.parentElement = mockElement;
+mockElement.remove = function() {};
 
 global.window = {
   innerWidth: 1000,
@@ -83,7 +84,7 @@ code = code.replace(
 );
 code = code.replace(
   "if (stage === 1) {",
-  "console.log(`[draw] Stage check: stage=${stage}`); if (stage === 1) { console.log(`[draw] Entered stage 1 block`);"
+  "console.log(`[draw] Stage check: stage=${stage}`); if (stage === 1) { console.log(`[draw] Entered stage 1 block. baseSize=${this.baseSize}, sizeScale=${this.sizeScale}, size=${this.size}, x=${this.x}, y=${this.y}`);"
 );
 code = code.replace(
   "} else if (stage === 2) {",

@@ -74,15 +74,16 @@ body {
 
 /* HEADER */
 .lab-header {
-  height: 75px;
+  height: clamp(55px, 6vh, 75px);
   background: rgba(12, 12, 16, 0.95);
   border-bottom: 2px solid var(--orange-dim);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 30px;
+  padding: 0 clamp(12px, 2vw, 30px);
   box-shadow: 0 4px 30px rgba(255, 106, 0, 0.1);
   z-index: 10;
+  flex-shrink: 0;
 }
 
 .logo {
@@ -109,16 +110,18 @@ body {
 
 .header-stats {
   display: flex;
-  gap: 30px;
+  gap: clamp(8px, 1.5vw, 30px);
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .stat-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: clamp(4px, 0.8vw, 10px);
   font-family: var(--font-title);
   background: rgba(255, 123, 0, 0.03);
-  padding: 8px 18px;
+  padding: clamp(4px, 0.6vh, 8px) clamp(8px, 1.2vw, 18px);
   border-radius: 4px;
   border: 1px solid rgba(255, 123, 0, 0.1);
 }
@@ -151,11 +154,12 @@ body {
 .lab-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: 330px 1fr 345px;
-  gap: 15px;
-  padding: 15px;
+  grid-template-columns: clamp(220px, 22vw, 330px) 1fr clamp(240px, 23vw, 345px);
+  gap: clamp(8px, 1vw, 15px);
+  padding: clamp(8px, 1vw, 15px);
   overflow: hidden;
-  height: calc(100vh - 75px - 165px);
+  height: calc(100vh - clamp(55px, 6vh, 75px) - clamp(130px, 14vh, 165px));
+  min-height: 0;
 }
 
 /* PANELS */
@@ -564,28 +568,35 @@ body {
   background: rgba(12, 12, 16, 0.98);
   border: 2px solid var(--red);
   border-radius: 4px;
-  padding: 30px 45px;
+  padding: 20px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 15px;
+  gap: 10px;
   pointer-events: auto;
   box-shadow: 0 0 30px rgba(239, 68, 68, 0.35);
   text-align: center;
   backdrop-filter: blur(12px);
+  max-height: 88vh;
+  overflow-y: auto;
+  max-width: 460px;
+  width: 92%;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(239,68,68,0.4) transparent;
 }
 
 .dead-screen h2 {
   font-family: var(--font-title);
   color: var(--red);
   letter-spacing: 2px;
-  font-size: 24px;
+  font-size: 20px;
+  margin: 0;
 }
 
 .dead-screen p {
-  font-size: 13px;
+  font-size: 11px;
   color: var(--text-muted);
+  margin: 0;
 }
 
 .btn-restart {
@@ -701,13 +712,14 @@ body {
 
 /* BOTTOM FOOTER (GENOMICS MATRIX) */
 .lab-footer {
-  height: 165px;
+  height: clamp(130px, 14vh, 165px);
   background: rgba(10, 10, 14, 0.98);
   border-top: 2px solid var(--orange-dim);
   display: flex;
   flex-direction: column;
   z-index: 10;
-  padding: 10px 20px;
+  padding: clamp(6px, 0.8vh, 10px) clamp(10px, 1.5vw, 20px);
+  flex-shrink: 0;
 }
 
 .genome-tree-title {
@@ -1322,3 +1334,108 @@ body {
     transform: translate(-50%, -35%);
   }
 }
+
+/* ==========================================
+   VICTORY CINEMATIC SCREEN
+   ========================================== */
+
+#victory-cinematic {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+
+#victory-cinematic.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.vc-line {
+  font-family: 'Cinzel', serif;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  letter-spacing: 3px;
+}
+
+.vc-line.appear {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.vc-line-small {
+  font-size: 11px;
+  color: #475569;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.vc-line-main {
+  font-size: clamp(22px, 3vw, 38px);
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.vc-line-sub {
+  font-size: clamp(12px, 1.5vw, 16px);
+  color: #94a3b8;
+  font-style: italic;
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+}
+
+.vc-separator {
+  width: 180px;
+  height: 1px;
+  margin: 16px auto;
+  opacity: 0;
+  transition: opacity 1s ease, width 1s ease;
+}
+
+.vc-separator.appear {
+  opacity: 1;
+  width: 320px;
+}
+
+@keyframes vc-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes vc-pulse-glow {
+  0%, 100% { text-shadow: 0 0 10px currentColor; }
+  50%       { text-shadow: 0 0 30px currentColor, 0 0 60px currentColor; }
+}
+
+.vc-line-main.glow {
+  animation: vc-pulse-glow 2s infinite;
+}
+
+/* dead-screen animate-in */
+.dead-screen.animate-in {
+  animation: endingSlideIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes endingSlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
