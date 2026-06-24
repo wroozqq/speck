@@ -58,7 +58,7 @@ const state = {
   crystals: 0,       // 💎 Crystal shop currency
   guardsDefeated: 0,
   generation: 1,
-  stage: 1, // 1: Слизень, 2: Детеныш, 3: Зверь, 4: Дракон
+  stage: 1, // 1: Слизень, 2: Детеныш, 3: Зверь, 4: Человек/рыцарь
   level: 1, // Dungeon Floor Depth
   autopilot: false,
   activeGeneId: null,
@@ -1162,39 +1162,42 @@ class Organism {
       let bestPath = this._apCache.path;
       let bestCandidate = this._apCache.targetCand;
       
-      if (bestCandidate) {
+      // 1. Check for nearby enemies first
+      let closestEnemy = null, minEnemyDist = Infinity;
+      if (typeof bots !== 'undefined') {
+        for (let bot of bots) {
+          if (bot.health > 0) {
+            let d = Math.hypot(bot.x - this.x, bot.y - this.y);
+            if (d < minEnemyDist) { minEnemyDist = d; closestEnemy = bot; }
+          }
+        }
+      }
+      
+      let desiredAngle = null;
+      let isChasingEnemy = false;
+      
+      if (closestEnemy && minEnemyDist < 160) {
+        // Target and attack the enemy!
+        desiredAngle = Math.atan2(closestEnemy.y - this.y, closestEnemy.x - this.x);
+        isChasingEnemy = true;
+        if (ticks % 5 === 0) {
+          if (typeof window.performPlayerAttack === 'function') {
+            window.performPlayerAttack(desiredAngle);
+          }
+        }
+      } else if (bestCandidate) {
+        // No enemies nearby, target the BFS candidate
         let targetX = bestCandidate.x;
         let targetY = bestCandidate.y;
-        
         if (bestPath && bestPath.length > 0) {
           targetX = bestPath[0].col * TILE_SIZE + 50;
           targetY = bestPath[0].row * TILE_SIZE + 50;
         }
-        
-        // Enemy awareness
-        let closestEnemy = null, minEnemyDist = Infinity;
-        if (typeof bots !== 'undefined') {
-          for (let bot of bots) {
-            if (bot.health > 0) {
-              let d = Math.hypot(bot.x - this.x, bot.y - this.y);
-              if (d < minEnemyDist) { minEnemyDist = d; closestEnemy = bot; }
-            }
-          }
-        }
-        
-        let desiredAngle;
-        if (closestEnemy && minEnemyDist < 80) {
-          // Flee when enemy too close
-          desiredAngle = Math.atan2(this.y - closestEnemy.y, this.x - closestEnemy.x);
-        } else {
-          desiredAngle = Math.atan2(targetY - this.y, targetX - this.x);
-          // Attack at medium range
-          if (closestEnemy && minEnemyDist < 150 && ticks % 15 === 0) {
-            let enemyAngle = Math.atan2(closestEnemy.y - this.y, closestEnemy.x - this.x);
-            if (typeof performPlayerAttack === 'function') performPlayerAttack(enemyAngle);
-          }
-        }
-        
+        desiredAngle = Math.atan2(targetY - this.y, targetX - this.x);
+      }
+      
+      // If we have a target (enemy or food)
+      if (desiredAngle !== null) {
         let angleDiff = desiredAngle - this.angle;
         while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
         while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
@@ -1206,7 +1209,7 @@ class Organism {
         let maxSpd = this.speed;
         
         // Sprint only when energy high enough, long path, no nearby enemy
-        if (bestPath && bestPath.length > 5 && this.energy > 65 && !this.sprinting && (!closestEnemy || minEnemyDist > 100)) {
+        if (!isChasingEnemy && bestPath && bestPath.length > 5 && this.energy > 65 && !this.sprinting) {
           this.activateSprint();
         }
         
@@ -4549,8 +4552,8 @@ function performPlayerAttack(clickAngle) {
   if (!shotFire || (state.genes.shh && state.stage >= 3)) {
     // Melee attack costs a tiny bit of energy (reduced from lvl 2+)
     let meleeCost = state.level >= 2 ? 0.3 : 0.8;
-    if (player.energy > meleeCost) {
-      player.energy = Math.max(0, player.energy - meleeCost);
+    if (player.energy > meleeCost || state.autopilot) {
+      player.energy = Math.max(0, player.energy - (state.autopilot ? 0 : meleeCost));
       
       // visual bite trigger (excitement goes to 1.0)
       player.excitementLevel = 1.0;
@@ -4560,13 +4563,14 @@ function performPlayerAttack(clickAngle) {
       for (let i = bots.length - 1; i >= 0; i--) {
         let bot = bots[i];
         let d = Math.hypot(bot.x - player.x, bot.y - player.y);
+        
         if (d < player.size + bot.size + 28) {
           let enemyAngle = Math.atan2(bot.y - player.y, bot.x - player.x);
           let diff = enemyAngle - clickAngle;
           while (diff < -Math.PI) diff += Math.PI * 2;
           while (diff > Math.PI) diff -= Math.PI * 2;
           
-          if (Math.abs(diff) < 1.1) {
+          if (Math.abs(diff) < 1.1 || state.autopilot) {
             // Melee Hit!
             let dmg = calculateDamageBlocked(bot, player.damage);
             bot.health -= dmg;
@@ -4697,6 +4701,8 @@ function performPlayerAttack(clickAngle) {
     }
   }
 }
+
+window.performPlayerAttack = performPlayerAttack;
 
   gameCanvas.addEventListener('mousedown', (e) => {
     synth.init();
@@ -6388,8 +6394,10 @@ function drawScene() {
 }
 
 // ==========================================
-// RENDER NEURAL GRAPH
+// RENDER BIO-RADAR
 // ==========================================
+let radarSweepAngle = 0;
+
 function drawBrainGraph() {
   if (!brainCtx || !player) return;
   
@@ -6397,128 +6405,224 @@ function drawBrainGraph() {
   
   let w = brainCanvas.width;
   let h = brainCanvas.height;
+  let cx = w / 2;
+  let cy = h / 2;
+  let maxRadarDist = 200; // Distance mapped to the edge of the radar
+  let radarRadius = Math.min(w, h) * 0.45;
   
-  let inputCount = player.brain.inputSize;
-  let hiddenCount = player.brain.hiddenSize;
-  let outputCount = player.brain.outputSize;
+  // 1. Draw Radar Background
+  brainCtx.shadowBlur = 0; // Clear shadow
   
-  let inputYScale = h / (inputCount + 1);
-  let hiddenYScale = h / (hiddenCount + 1);
-  let outputYScale = h / (outputCount + 1);
-  
-  let inputX = 65;
-  let hiddenX = w / 2;
-  let outputX = w - 60;
-  
-  let labels = [
-    "Wall N",
-    "Wall E",
-    "Wall S",
-    "Wall W",
-    "Target X",
-    "Target Y",
-    "Hazard X",
-    "Hazard Y",
-    "Satiety",
-    "HP"
-  ];
-  
-  let inputs = player.lastPrediction.inputs;
-  let hidden = player.lastPrediction.hidden;
-  let outputs = player.lastPrediction.outputs;
-  
-  // Draw synapses
-  for (let i = 0; i < hiddenCount; i++) {
-    let hy = hiddenYScale * (i + 1);
-    for (let j = 0; j < inputCount; j++) {
-      let iy = inputYScale * (j + 1);
-      let weight = player.brain.weightsIH[i][j];
-      brainCtx.strokeStyle = weight > 0 ? 'rgba(0, 240, 255, 0.4)' : 'rgba(255, 42, 109, 0.4)';
-      brainCtx.lineWidth = Math.abs(weight) * (state.autopilot ? 2.5 : 1.2);
-      
-      brainCtx.beginPath();
-      brainCtx.moveTo(inputX, iy);
-      brainCtx.lineTo(hiddenX, hy);
-      brainCtx.stroke();
+  // Concentric grid circles
+  brainCtx.strokeStyle = 'rgba(249, 115, 22, 0.15)'; // Orange accent color matching the style
+  brainCtx.lineWidth = 1;
+  for (let r = 0.25; r <= 1.0; r += 0.25) {
+    brainCtx.beginPath();
+    brainCtx.arc(cx, cy, radarRadius * r, 0, Math.PI * 2);
+    brainCtx.stroke();
+    
+    // Tiny distance labels
+    if (r < 1.0) {
+      brainCtx.fillStyle = 'rgba(249, 115, 22, 0.4)';
+      brainCtx.font = '8px Share Tech Mono';
+      brainCtx.textAlign = 'center';
+      brainCtx.fillText(Math.round(maxRadarDist * r) + "m", cx, cy - radarRadius * r + 9);
     }
   }
   
-  for (let i = 0; i < outputCount; i++) {
-    let oy = outputYScale * (i + 1);
-    for (let j = 0; j < hiddenCount; j++) {
-      let hy = hiddenYScale * (j + 1);
-      let weight = player.brain.weightsHO[i][j];
-      brainCtx.strokeStyle = weight > 0 ? 'rgba(0, 240, 255, 0.4)' : 'rgba(255, 42, 109, 0.4)';
-      brainCtx.lineWidth = Math.abs(weight) * (state.autopilot ? 2.5 : 1.2);
-      
-      brainCtx.beginPath();
-      brainCtx.moveTo(hiddenX, hy);
-      brainCtx.lineTo(outputX, oy);
-      brainCtx.stroke();
+  // Crosshairs
+  brainCtx.beginPath();
+  brainCtx.moveTo(cx - radarRadius, cy);
+  brainCtx.lineTo(cx + radarRadius, cy);
+  brainCtx.moveTo(cx, cy - radarRadius);
+  brainCtx.lineTo(cx, cy + radarRadius);
+  brainCtx.stroke();
+  
+  // Outer ring
+  brainCtx.strokeStyle = 'rgba(249, 115, 22, 0.4)';
+  brainCtx.lineWidth = 2;
+  brainCtx.beginPath();
+  brainCtx.arc(cx, cy, radarRadius, 0, Math.PI * 2);
+  brainCtx.stroke();
+  
+  // 2. Draw Scanning Sweep Line and Trail
+  radarSweepAngle += 0.04;
+  if (radarSweepAngle > Math.PI * 2) radarSweepAngle -= Math.PI * 2;
+  
+  // Sweep trail
+  let trailSegments = 30;
+  for (let i = 0; i < trailSegments; i++) {
+    let alpha = (1 - (i / trailSegments)) * 0.15;
+    let angle = radarSweepAngle - (i * 0.02);
+    brainCtx.strokeStyle = `rgba(249, 115, 22, ${alpha})`;
+    brainCtx.lineWidth = 1.5;
+    brainCtx.beginPath();
+    brainCtx.moveTo(cx, cy);
+    brainCtx.lineTo(cx + Math.cos(angle) * radarRadius, cy + Math.sin(angle) * radarRadius);
+    brainCtx.stroke();
+  }
+  
+  // Lead sweep line
+  brainCtx.strokeStyle = 'rgba(251, 146, 60, 0.8)';
+  brainCtx.lineWidth = 2;
+  brainCtx.beginPath();
+  brainCtx.moveTo(cx, cy);
+  brainCtx.lineTo(cx + Math.cos(radarSweepAngle) * radarRadius, cy + Math.sin(radarSweepAngle) * radarRadius);
+  brainCtx.stroke();
+  
+  // 3. Draw Objects (Relative to Player)
+  let detectedCount = 0;
+  let closestEnemyDist = Infinity;
+  let closestEnemyName = "Не обнаружено";
+  
+  // Function to convert absolute position to relative radar coordinates (North is Up)
+  function getRadarCoords(objX, objY) {
+    let dx = objX - player.x;
+    let dy = objY - player.y;
+    let dist = Math.hypot(dx, dy);
+    
+    // North is Up, East is Right
+    let angleToObj = Math.atan2(dy, dx);
+    
+    if (dist <= maxRadarDist) {
+      let rDist = (dist / maxRadarDist) * radarRadius;
+      return {
+        x: cx + Math.cos(angleToObj) * rDist,
+        y: cy + Math.sin(angleToObj) * rDist,
+        dist: dist,
+        inRadar: true
+      };
+    }
+    return { inRadar: false, dist: dist };
+  }
+  
+  // Draw Food (Green)
+  if (typeof food !== 'undefined') {
+    for (let f of food) {
+      let rc = getRadarCoords(f.x, f.y);
+      if (rc.inRadar) {
+        detectedCount++;
+        brainCtx.fillStyle = '#22c55e';
+        brainCtx.shadowColor = '#22c55e';
+        brainCtx.shadowBlur = 4;
+        brainCtx.beginPath();
+        brainCtx.arc(rc.x, rc.y, 3, 0, Math.PI * 2);
+        brainCtx.fill();
+      }
     }
   }
   
-  // Draw nodes
-  brainCtx.shadowBlur = 4;
-  
-  // Inputs
-  for (let j = 0; j < inputCount; j++) {
-    let iy = inputYScale * (j + 1);
-    let val = inputs[j];
-    
-    brainCtx.shadowColor = '#ff6a00';
-    let rad = 7 + Math.abs(val) * 3;
-    brainCtx.fillStyle = val > 0.15 ? 'rgba(255, 106, 0, 0.9)' : '#0f1016';
-    brainCtx.strokeStyle = '#ff6a00';
-    
-    brainCtx.beginPath();
-    brainCtx.arc(inputX, iy, rad, 0, Math.PI * 2);
-    brainCtx.fill();
-    brainCtx.stroke();
-    
-    brainCtx.fillStyle = '#94a3b8';
-    brainCtx.font = '8px Share Tech Mono';
-    brainCtx.textAlign = 'right';
-    brainCtx.fillText(labels[j], inputX - 12, iy + 3);
+  // Draw Chests (Gold)
+  if (typeof chests !== 'undefined') {
+    for (let ch of chests) {
+      if (!ch.open) {
+        let rc = getRadarCoords(ch.x, ch.y);
+        if (rc.inRadar) {
+          detectedCount++;
+          brainCtx.fillStyle = '#eab308';
+          brainCtx.shadowColor = '#eab308';
+          brainCtx.shadowBlur = 4;
+          brainCtx.beginPath();
+          brainCtx.arc(rc.x, rc.y, 4, 0, Math.PI * 2);
+          brainCtx.fill();
+        }
+      }
+    }
   }
   
-  // Hidden
-  for (let i = 0; i < hiddenCount; i++) {
-    let hy = hiddenYScale * (i + 1);
-    let val = hidden[i];
-    brainCtx.shadowColor = '#ffb700';
-    let rad = 6 + Math.abs(val) * 3;
-    brainCtx.fillStyle = val > 0.15 ? 'rgba(255, 183, 0, 0.9)' : '#0f1016';
-    brainCtx.strokeStyle = '#ffb700';
-    
-    brainCtx.beginPath();
-    brainCtx.arc(hiddenX, hy, rad, 0, Math.PI * 2);
-    brainCtx.fill();
-    brainCtx.stroke();
+  // Draw Relics and Loot
+  if (typeof relicPickups !== 'undefined') {
+    for (let rp of relicPickups) {
+      let rc = getRadarCoords(rp.x, rp.y);
+      if (rc.inRadar) {
+        detectedCount++;
+        brainCtx.fillStyle = '#eab308';
+        brainCtx.shadowColor = '#eab308';
+        brainCtx.shadowBlur = 4;
+        brainCtx.beginPath();
+        brainCtx.arc(rc.x, rc.y, 4, 0, Math.PI * 2);
+        brainCtx.fill();
+      }
+    }
+  }
+  if (typeof lootItems !== 'undefined') {
+    for (let item of lootItems) {
+      let rc = getRadarCoords(item.x, item.y);
+      if (rc.inRadar) {
+        detectedCount++;
+        brainCtx.fillStyle = '#eab308';
+        brainCtx.shadowColor = '#eab308';
+        brainCtx.shadowBlur = 4;
+        brainCtx.beginPath();
+        brainCtx.arc(rc.x, rc.y, 3, 0, Math.PI * 2);
+        brainCtx.fill();
+      }
+    }
   }
   
-  // Outputs
-  let outLabels = ["Steer", "Throttle"];
-  for (let i = 0; i < outputCount; i++) {
-    let oy = outputYScale * (i + 1);
-    let val = outputs[i];
-    brainCtx.shadowColor = '#ff2a6d';
-    let rad = 8 + Math.abs(val) * 3;
-    brainCtx.fillStyle = Math.abs(val) > 0.15 ? 'rgba(255, 42, 109, 0.9)' : '#0f1016';
-    brainCtx.strokeStyle = '#ff2a6d';
-    
-    brainCtx.beginPath();
-    brainCtx.arc(outputX, oy, rad, 0, Math.PI * 2);
-    brainCtx.fill();
-    brainCtx.stroke();
-    
-    brainCtx.fillStyle = '#ff2a6d';
-    brainCtx.font = '8px Share Tech Mono';
-    brainCtx.textAlign = 'left';
-    brainCtx.fillText(outLabels[i], outputX + 12, oy + 3);
+  // Draw Enemies (Red)
+  if (typeof bots !== 'undefined') {
+    for (let bot of bots) {
+      if (bot.health > 0) {
+        let rc = getRadarCoords(bot.x, bot.y);
+        if (rc.dist < closestEnemyDist) {
+          closestEnemyDist = rc.dist;
+          closestEnemyName = `${bot.type.toUpperCase()} (${Math.round(rc.dist)}m)`;
+        }
+        if (rc.inRadar) {
+          detectedCount++;
+          brainCtx.fillStyle = '#ef4444';
+          brainCtx.shadowColor = '#ef4444';
+          brainCtx.shadowBlur = 5;
+          brainCtx.beginPath();
+          brainCtx.arc(rc.x, rc.y, bot.type === 'boss' ? 5.5 : 3.5, 0, Math.PI * 2);
+          brainCtx.fill();
+        }
+      }
+    }
   }
   
+  // Reset shadow
   brainCtx.shadowBlur = 0;
+  
+  // Draw Player Marker in Center (rotated by player.angle)
+  brainCtx.save();
+  brainCtx.translate(cx, cy);
+  brainCtx.rotate(player.angle);
+  
+  brainCtx.fillStyle = '#ffffff';
+  brainCtx.strokeStyle = '#f97316';
+  brainCtx.lineWidth = 1.5;
+  brainCtx.beginPath();
+  // Drawing pointing to the right (which represents 0 radians)
+  brainCtx.moveTo(6, 0);
+  brainCtx.lineTo(-5, -5);
+  brainCtx.lineTo(-2, 0);
+  brainCtx.lineTo(-5, 5);
+  brainCtx.closePath();
+  brainCtx.fill();
+  brainCtx.stroke();
+  brainCtx.restore();
+  
+  // 4. Update Telemetry UI
+  let elCoords = document.getElementById('tel-coords');
+  let elThreat = document.getElementById('tel-threat');
+  let elObjects = document.getElementById('tel-objects');
+  
+  if (elCoords) {
+    elCoords.innerText = `X: ${Math.round(player.x)}, Y: ${Math.round(player.y)}`;
+  }
+  if (elThreat) {
+    elThreat.innerText = closestEnemyName;
+    if (closestEnemyDist < 120) {
+      elThreat.style.color = '#ef4444';
+    } else {
+      elThreat.style.color = '#ffa852';
+    }
+  }
+  if (elObjects) {
+    elObjects.innerText = detectedCount;
+  }
 }
 
 // ==========================================

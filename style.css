@@ -158,7 +158,7 @@ body {
   gap: clamp(8px, 1vw, 15px);
   padding: clamp(8px, 1vw, 15px);
   overflow: hidden;
-  height: calc(100vh - clamp(55px, 6vh, 75px) - clamp(130px, 14vh, 165px));
+  height: calc(100vh - clamp(55px, 6vh, 75px) - clamp(185px, 20vh, 235px));
   min-height: 0;
 }
 
@@ -644,7 +644,7 @@ body {
 }
 
 .brain-canvas-wrapper {
-  height: 250px;
+  height: clamp(120px, 20vh, 250px);
   background: rgba(0, 0, 0, 0.45);
   border-bottom: 1px solid rgba(255, 123, 0, 0.08);
   display: flex;
@@ -668,6 +668,36 @@ body {
   border-bottom: 1px solid rgba(255, 123, 0, 0.08);
   font-size: 9px;
   color: var(--text-muted);
+}
+
+.radar-telemetry {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 15px;
+  background: rgba(15, 23, 42, 0.4);
+  border-bottom: 1px solid rgba(255, 123, 0, 0.08);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.radar-telemetry .telemetry-row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed rgba(255, 123, 0, 0.05);
+  padding-bottom: 4px;
+}
+
+.radar-telemetry .telemetry-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.radar-telemetry span {
+  color: var(--orange);
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(251, 146, 60, 0.3);
 }
 
 .legend-item {
@@ -712,7 +742,7 @@ body {
 
 /* BOTTOM FOOTER (GENOMICS MATRIX) */
 .lab-footer {
-  height: clamp(130px, 14vh, 165px);
+  height: clamp(185px, 20vh, 235px);
   background: rgba(10, 10, 14, 0.98);
   border-top: 2px solid var(--orange-dim);
   display: flex;
@@ -783,7 +813,7 @@ body {
   background: rgba(255, 123, 0, 0.02);
   border: 1px solid rgba(255, 123, 0, 0.06);
   border-radius: 2px;
-  padding: 6px 10px;
+  padding: 5px 8px;
   display: flex;
   flex-direction: column;
   cursor: pointer;
@@ -856,7 +886,7 @@ body {
 }
 
 .gene-card {
-  width: 460px;
+  width: min(460px, 92%);
   background: #0f0f14;
   border: 2px solid var(--orange-dim);
   border-radius: 4px;
@@ -968,7 +998,7 @@ body {
 
 /* INTRO SCREEN */
 .intro-box {
-  width: 580px;
+  width: min(580px, 92%);
   background: rgba(10, 10, 14, 0.98);
   border: 2px solid var(--orange-dim);
   border-radius: 4px;
@@ -1106,7 +1136,7 @@ body {
 }
 
 .crystal-shop-card {
-  width: 560px;
+  width: min(560px, 92%);
   max-height: 90vh;
   overflow-y: auto;
   background: rgba(8, 6, 20, 0.97);
@@ -1436,6 +1466,189 @@ body {
   to {
     opacity: 1;
     transform: translate(-50%, -50%);
+  }
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN & MEDIA QUERIES
+   ========================================== */
+
+/* 1. Low Viewport Height (Laptops/Small screens) */
+@media (max-height: 800px) {
+  .brain-canvas-wrapper {
+    height: 160px;
+  }
+  .panel-title {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+  .biotope-stats {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .creature-specs {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .creature-upgrades {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .eco-report {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .lab-footer {
+    height: 170px;
+  }
+  .genes-list {
+    gap: 4px;
+  }
+  .gene-item {
+    padding: 4px 6px;
+    min-width: 110px;
+  }
+}
+
+@media (max-height: 700px) {
+  .brain-canvas-wrapper {
+    height: 120px;
+  }
+  .lab-footer {
+    height: 150px;
+  }
+  .gene-code {
+    font-size: 9px;
+  }
+  .gene-name {
+    font-size: 8px;
+  }
+  .gene-cost {
+    font-size: 8px;
+  }
+  .panel-title {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+  .radar-telemetry {
+    padding: 6px 10px;
+    gap: 4px;
+  }
+  .telemetry-row {
+    padding-bottom: 2px;
+  }
+  .control-row {
+    gap: 8px;
+  }
+  .control-btn {
+    padding: 4px 8px;
+    font-size: 9px;
+  }
+}
+
+/* 2. Narrow Width Screens (Low Resolution Laptops / Small Viewports) */
+@media (max-width: 1200px) {
+  .logo-title {
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+  .logo-sub {
+    display: none;
+  }
+  .header-stats {
+    gap: 6px;
+  }
+  .stat-group {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+  .stat-group .label {
+    font-size: 10px;
+  }
+  .val-glow-cyan, .val-glow-yellow, .val-glow-pink {
+    font-size: 11px;
+  }
+  .btn-crystal-shop {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+}
+
+/* 3. Tablets (Rearrange 3-columns into 2-columns) */
+@media (max-width: 1024px) {
+  .lab-grid {
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: 1fr 1fr;
+    grid-template-areas: 
+      "left center"
+      "right center";
+  }
+  .telemetry-panel {
+    grid-area: left;
+  }
+  .viewport-panel {
+    grid-area: center;
+    grid-row: 1 / span 2;
+  }
+  .brain-panel {
+    grid-area: right;
+  }
+}
+
+/* 4. Mobile Devices (Linear stacked scrolling layout) */
+@media (max-width: 768px) {
+  body {
+    overflow-y: auto;
+    height: auto;
+  }
+  .lab-header {
+    height: auto;
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+  }
+  .header-stats {
+    justify-content: center;
+    width: 100%;
+  }
+  .lab-grid {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+    padding: 10px;
+    gap: 15px;
+  }
+  .viewport-panel {
+    height: 50vh;
+    min-height: 400px;
+    order: -1; /* Keep game viewport at the top for playability */
+  }
+  .telemetry-panel, .brain-panel {
+    height: auto;
+    max-height: 450px;
+  }
+  .lab-footer {
+    height: auto;
+    flex-shrink: 0;
+    padding: 10px;
+  }
+  .genome-tabs {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    height: auto;
+    overflow: visible;
+  }
+  .genes-list {
+    overflow-y: visible;
+    height: auto;
+  }
+}
+
+/* 5. Phones (Crystal Shop 1 Column) */
+@media (max-width: 500px) {
+  .crystal-shop-grid {
+    grid-template-columns: 1fr;
   }
 }
 

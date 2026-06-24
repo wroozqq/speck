@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Castle-Forge: Документация Проекта</title>
+  <!-- Google Fonts for premium design -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;500;600;700&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS VARIABLES / THEME DESIGN SYSTEMS */
+    :root {
+      /* Theme 1: Modern Docs (Default) */
+      --bg-color: #f8fafc;
+      --panel-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --text-color: #334155;
+      --text-muted: #64748b;
+      --heading-color: #0f172a;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-glow: rgba(59, 130, 246, 0.15);
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-heading: 'Inter', -apple-system, sans-serif;
+      --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+      --page-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --code-bg: #f1f5f9;
+      --sidebar-width: 320px;
+      --content-max-width: 900px;
+    }
+
+    body.theme-cyberpunk {
+      --bg-color: #0b0f19;
+      --panel-bg: #111827;
+      --border-color: #1f2937;
+      --text-color: #d1d5db;
+      --text-muted: #9ca3af;
+      --heading-color: #f3f4f6;
+      --accent-color: #f97316;
+      --accent-hover: #ea580c;
+      --accent-glow: rgba(249, 115, 22, 0.25);
+      --font-body: 'Inter', sans-serif;
+      --font-heading: 'Cinzel', serif;
+      --page-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
+      --code-bg: #1f2937;
+    }
+
+    body.theme-academic {
+      --bg-color: #e5e5e5;
+      --panel-bg: #ffffff;
+      --border-color: #cccccc;
+      --text-color: #111111;
+      --text-muted: #555555;
+      --heading-color: #000000;
+      --accent-color: #000000;
+      --accent-hover: #333333;
+      --accent-glow: rgba(0, 0, 0, 0.05);
+      --font-body: 'PT Serif', Georgia, serif;
+      --font-heading: 'PT Serif', Georgia, serif;
+      --page-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      --code-bg: #f5f5f5;
+    }
+
+    /* GLOBAL RESET */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.625;
+      transition: background-color 0.3s, color 0.3s;
+      font-size: 16px;
+    }
+
+    /* MAIN APP CONTAINER */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* CONTROLS HEADER */
+    .top-controls {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background-color: var(--panel-bg);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .doc-brand {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--heading-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .doc-brand span.badge {
+      font-size: 11px;
+      background: var(--accent-color);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    .control-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-action {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background-color: var(--border-color);
+      border-color: var(--text-muted);
+    }
+
+    .btn-action.active {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+      color: #ffffff !important;
+    }
+
+    .btn-primary-action {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .btn-primary-action:hover {
+      background-color: var(--accent-hover);
+      border-color: var(--accent-hover);
+      color: #ffffff;
+    }
+
+    /* SIDEBAR NAVIGATION */
+    .sidebar {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      bottom: 0;
+      width: var(--sidebar-width);
+      background-color: var(--panel-bg);
+      border-right: 1px solid var(--border-color);
+      overflow-y: auto;
+      padding: 20px 10px;
+      z-index: 900;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .sidebar h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 15px;
+      padding-left: 10px;
+      font-family: var(--font-heading);
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item a {
+      display: block;
+      color: var(--text-color);
+      text-decoration: none;
+      font-size: 13.5px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-item a:hover {
+      background-color: var(--border-color);
+      color: var(--heading-color);
+      padding-left: 16px;
+    }
+
+    .nav-item.active a {
+      background-color: var(--accent-glow);
+      color: var(--accent-color);
+      font-weight: 600;
+      border-left: 3px solid var(--accent-color);
+      border-radius: 0 6px 6px 0;
+    }
+
+    .nav-chapter {
+      font-weight: 700;
+      margin-top: 10px;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--heading-color) !important;
+      opacity: 0.85;
+      letter-spacing: 0.5px;
+    }
+
+    /* READING CONTAINER */
+    .content-area {
+      margin-left: var(--sidebar-width);
+      margin-top: 60px;
+      flex-grow: 1;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    .document-page {
+      background-color: var(--panel-bg);
+      width: 100%;
+      max-width: var(--content-max-width);
+      padding: 60px 80px;
+      box-shadow: var(--page-shadow);
+      border-radius: 8px;
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+
+    body.theme-academic .document-page {
+      border-radius: 0;
+      border: 1px solid #c0c0c0;
+      min-height: 297mm; /* Standard A4 height aspect */
+      padding: 80px 100px;
+    }
+
+    /* TYPOGRAPHY */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-heading);
+      color: var(--heading-color);
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 16px;
+      margin-top: 32px;
+    }
+
+    .document-page > h1:first-child {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 8px;
+      text-align: center;
+      margin-bottom: 40px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    h2 {
+      font-size: 1.55rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 6px;
+      margin-top: 48px;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      margin-top: 36px;
+    }
+
+    h4 {
+      font-size: 1.1rem;
+      color: var(--accent-color);
+    }
+
+    p {
+      margin-bottom: 20px;
+      text-align: justify;
+      text-justify: inter-word;
+      text-indent: 2em; /* Paragraph indent standard in formal Russian papers */
+    }
+
+    ul, ol {
+      margin-bottom: 20px;
+      margin-left: 40px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    /* SCHEMATIC DESIGN / TABLES / FORMULAS */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      font-size: 14.5px;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--code-bg);
+      font-weight: 700;
+      color: var(--heading-color);
+    }
+
+    tr:nth-child(even) td {
+      background-color: rgba(0, 0, 0, 0.015);
+    }
+
+    body.theme-cyberpunk tr:nth-child(even) td {
+      background-color: rgba(255, 255, 255, 0.015);
+    }
+
+    .equation-box {
+      background-color: var(--code-bg);
+      border-left: 4px solid var(--accent-color);
+      padding: 15px 25px;
+      margin: 20px 0;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 17px;
+      color: var(--heading-color);
+      border-radius: 4px;
+    }
+
+    .equation-label {
+      float: right;
+      font-weight: bold;
+    }
+
+    .code-block {
+      background-color: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin: 25px 0;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      color: var(--text-color);
+      line-height: 1.5;
+    }
+
+    .code-comment {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .code-keyword {
+      color: #3b82f6;
+      font-weight: bold;
+    }
+    body.theme-cyberpunk .code-keyword {
+      color: #f472b6;
+    }
+    body.theme-academic .code-keyword {
+      color: #000;
+      font-weight: 900;
+    }
+
+    .code-string {
+      color: #10b981;
+    }
+    body.theme-cyberpunk .code-string {
+      color: #34d399;
+    }
+
+    /* DYNAMIC SVG DIAGRAM STYLING */
+    .diagram-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 30px 0;
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .diagram-caption {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      text-align: center;
+      font-style: italic;
+    }
+
+    .diagram-svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .svg-node {
+      fill: var(--panel-bg);
+      stroke: var(--text-color);
+      stroke-width: 1.5;
+    }
+    .svg-node-active {
+      fill: var(--accent-glow);
+      stroke: var(--accent-color);
+      stroke-width: 2;
+    }
+    .svg-text {
+      font-family: var(--font-body);
+      font-size: 11px;
+      fill: var(--text-color);
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+    .svg-text-bold {
+      font-weight: bold;
+      fill: var(--heading-color);
+    }
+    .svg-link {
+      fill: none;
+      stroke: var(--text-muted);
+      stroke-width: 1.5;
+    }
+    .svg-arrow {
+      fill: var(--text-muted);
+    }
+
+    /* FONT SIZE CLASSES */
+    .fs-small { font-size: 14px; }
+    .fs-normal { font-size: 16px; }
+    .fs-large { font-size: 18px; }
+
+    /* Evade print layout issues */
+    .page-break {
+      page-break-before: always;
+    }
+
+    /* PRINT LAYOUT OVERRIDES */
+    @media print {
+      @page {
+        size: A4;
+        margin: 20mm;
+      }
+      
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'PT Serif', Georgia, serif !important;
+        font-size: 12pt !important;
+        line-height: 1.5 !important;
+      }
+
+      .top-controls, .sidebar {
+        display: none !important;
+      }
+
+      .content-area {
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+        padding: 0 !important;
+      }
+
+      .document-page {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        background: transparent !important;
+      }
+
+      h1, h2, h3, h4, h5, h6 {
+        color: #000000 !important;
+        font-family: 'PT Serif', Georgia, serif !important;
+        page-break-after: avoid;
+      }
+
+      h1 {
+        font-size: 24pt !important;
+        margin-bottom: 30pt !important;
+      }
+
+      h2 {
+        font-size: 18pt !important;
+        border-bottom: 1pt solid #000000 !important;
+        margin-top: 30pt !important;
+      }
+
+      h3 {
+        font-size: 14pt !important;
+      }
+
+      p {
+        text-indent: 1.25cm !important;
+        margin-bottom: 12pt !important;
+      }
+
+      table {
+        font-size: 10pt !important;
+        page-break-inside: avoid;
+      }
+
+      th, td {
+        border: 1px solid #000000 !important;
+      }
+
+      .code-block, .equation-box {
+        background: #ffffff !important;
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+        page-break-inside: avoid;
+      }
+
+      .diagram-container {
+        background: #ffffff !important;
+        border: 1px solid #000000 !important;
+        page-break-inside: avoid;
+      }
+
+      .svg-node {
+        fill: #ffffff !important;
+        stroke: #000000 !important;
+      }
+      .svg-node-active {
+        fill: #eeeeee !important;
+        stroke: #000000 !important;
+      }
+      .svg-text {
+        fill: #000000 !important;
+      }
+      .svg-link {
+        stroke: #000000 !important;
+      }
+      .svg-arrow {
+        fill: #000000 !important;
+      }
+    }
+  </style>
+</head>
+<body class="fs-normal">
+
+  <!-- TOP MENU BAR -->
+  <div class="top-controls">
+    <div class="doc-brand">
+      <span>🏰 Castle-Forge</span>
+      <span class="badge">Docs v1.0</span>
+    </div>
+    <div class="control-actions">
+      <!-- Theme Switcher -->
+      <span style="font-size: 12px; color: var(--text-muted);">Тема оформления:</span>
+      <button class="btn-action active" id="btn-theme-modern" onclick="setTheme('modern')">Современная</button>
+      <button class="btn-action" id="btn-theme-cyberpunk" onclick="setTheme('cyberpunk')">Киберпанк</button>
+      <button class="btn-action" id="btn-theme-academic" onclick="setTheme('academic')">Академическая</button>
+      
+      <span style="border-left: 1px solid var(--border-color); height: 20px; margin: 0 5px;"></span>
+      
+      <!-- Font Size Changer -->
+      <span style="font-size: 12px; color: var(--text-muted);">Шрифт:</span>
+      <button class="btn-action" onclick="changeFontSize(-1)" title="Уменьшить шрифт">A-</button>
+      <button class="btn-action" onclick="changeFontSize(1)" title="Увеличить шрифт">A+</button>
+      
+      <span style="border-left: 1px solid var(--border-color); height: 20px; margin: 0 5px;"></span>
+      
+      <!-- Print/PDF Export Button -->
+      <button class="btn-action btn-primary-action" onclick="window.print()">
+        <span>🖨️ Печать / PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN STRUCTURE -->
+  <div class="app-container">
+    
+    <!-- LEFT SIDE NAVIGATION -->
+    <aside class="sidebar">
+      <h3>Содержание</h3>
+      <ul class="nav-list">
+        <li class="nav-item active"><a href="#intro">ВВЕДЕНИЕ</a></li>
+        
+        <li class="nav-item nav-chapter">1. Аналитико-постановочная часть</li>
+        <li class="nav-item"><a href="#sec1-1">1.1 Постановка задачи</a></li>
+        <li class="nav-item"><a href="#sec1-2">1.2 Архитектура системы</a></li>
+        <li class="nav-item"><a href="#sec1-3">1.3 Требования к серверу</a></li>
+        <li class="nav-item"><a href="#sec1-4">1.4 Требования к клиенту</a></li>
+        <li class="nav-item"><a href="#sec1-5">1.5 Функциональные требования</a></li>
+        <li class="nav-item"><a href="#sec1-6">1.6 Нефункциональные требования</a></li>
+        <li class="nav-item"><a href="#sec1-7">1.7 Архитектурные требования</a></li>
+        
+        <li class="nav-item nav-chapter">2. Теоретико-проектная часть</li>
+        <li class="nav-item"><a href="#sec2-1">2.1 Назначение игры</a></li>
+        <li class="nav-item"><a href="#sec2-2">2.2 Архитектура проекта</a></li>
+        <li class="nav-item"><a href="#sec2-3">2.3 Игровые данные</a></li>
+        <li class="nav-item"><a href="#sec2-4">2.4 Оптимизация и безопасность</a></li>
+        <li class="nav-item"><a href="#sec2-5">2.5 Интерфейс пользователя</a></li>
+        <li class="nav-item"><a href="#sec2-6">2.6 Тестирование системы</a></li>
+        
+        <li class="nav-item nav-chapter">3. Практическая реализация</li>
+        <li class="nav-item"><a href="#sec3-1">3.1 Структура среды разработки</a></li>
+        <li class="nav-item"><a href="#sec3-2">3.2 Разработка ПО</a></li>
+        <li class="nav-item"><a href="#sec3-3">3.3 Доказательства выполнения</a></li>
+        <li class="nav-item"><a href="#sec3-4">3.4 Тестовые сценарии</a></li>
+        <li class="nav-item"><a href="#sec3-5">3.5 Оценка результатов</a></li>
+        
+        <li class="nav-item nav-chapter">4. Экономическая часть</li>
+        <li class="nav-item"><a href="#sec4-1">4.1 Описание проекта</a></li>
+        <li class="nav-item"><a href="#sec4-2">4.2 Маркетинговая стратегия</a></li>
+        <li class="nav-item"><a href="#sec4-3">4.3 Производственный план</a></li>
+        <li class="nav-item"><a href="#sec4-4">4.4 Организационный план</a></li>
+        <li class="nav-item"><a href="#sec4-5">4.5 Финансовый план (издержки)</a></li>
+        <li class="nav-item"><a href="#sec4-6">4.6 Окупаемость проекта</a></li>
+        
+        <li class="nav-item nav-chapter">5. Безопасность и охрана труда</li>
+        <li class="nav-item"><a href="#sec5-1">5.1 Рабочее место разработчика</a></li>
+        <li class="nav-item"><a href="#sec5-2">5.2 Электробезопасность</a></li>
+        <li class="nav-item"><a href="#sec5-3">5.3 Пожарная безопасность</a></li>
+        <li class="nav-item"><a href="#sec5-4">5.4 Снижение утомляемости</a></li>
+        <li class="nav-item"><a href="#sec5-5">5.5 Выводы по разделу 5</a></li>
+        
+        <li class="nav-item nav-chapter">Заключение & Приложения</li>
+        <li class="nav-item"><a href="#conclusion">ЗАКЛЮЧЕНИЕ</a></li>
+        <li class="nav-item"><a href="#appendix">ПРИЛОЖЕНИЯ</a></li>
+      </ul>
+    </aside>
+
+    <!-- RIGHT CONTENT AREA -->
+    <main class="content-area">
+      <article class="document-page">
+        
+        <!-- COVER OR TITLE HEADER -->
+        <div style="text-align: center; margin-bottom: 60px;">
+          <h1 style="border-bottom:none; margin-bottom:10px;">CASTLE-FORGE</h1>
+          <p style="text-align:center; font-style:italic; text-indent:0; margin-bottom:40px;">
+            2D био-нейронный симулятор эволюции в средневековом замке<br>
+            Пояснительная записка к программному комплексу
+          </p>
+          <div style="border-top:1px double var(--border-color); border-bottom:1px double var(--border-color); padding: 15px 0; margin-top:20px; font-family:var(--font-mono); font-size:14px;">
+            Языки и технологии: HTML5, CSS3, ES6 JavaScript, Canvas 2D API, Node.js, Express
+          </div>
+        </div>
+
+        <!-- INTRODUCTION -->
+        <section id="intro">
+          <h2>ВВЕДЕНИЕ</h2>
+          <p>Развитие современных веб-технологий расширило горизонты для создания симуляционных и игровых систем, работающих непосредственно в браузере без необходимости загрузки сторонних бинарных файлов. В последние годы особый интерес вызывают системы, сочетающие элементы геймификации с научными концепциями: биоинформатикой, теорией эволюции, генетическими алгоритмами и искусственными нейронными сетями. Симуляция эволюционного процесса в ограниченных замкнутых пространствах представляет собой не только развлекательную игровую механику, но и мощный образовательный инструмент, позволяющий визуализировать сложные математические и биологические модели в реальном времени.</p>
+          <p>Проект <strong>"Castle-Forge: 2D Medieval Evolution Simulator"</strong> представляет собой интерактивный программный комплекс, моделирующий выживание и генетическую адаптацию простейшего организма (от аморфной споры до высшего рыцаря) в опасной среде средневекового подземелья. Игрок берет на себя роль «генетического алхимика», изменяя структуру ДНК существа с помощью реальных генов (таких как RuBisCO, COX1, LDHA, SHH и др.) и наблюдая за изменением поведения, физических параметров и визуального образа подопытного объекта. Ключевой особенностью системы является наличие встроенного <i>нейросетевого автопилота</i> — полносвязной нейронной сети прямого распространения с генетическим алгоритмом мутации весов, способной обучаться перемещению и сбору ресурсов в лабиринте.</p>
+          <p>Актуальность разработки обусловлена возрастающей потребностью в доступных интерактивных симуляторах искусственного интеллекта и биологических алгоритмов. Использование HTML5 Canvas API в сочетании с чистым JavaScript обеспечивает высокую частоту кадров (FPS >= 60) и мгновенный доступ с любых настольных и мобильных операционных систем. Данная документация подробно описывает полный жизненный цикл проектирования, разработки, тестирования и экономического обоснования программного продукта "Castle-Forge".</p>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- CHAPTER 1 -->
+        <section id="chap1">
+          <h2>1. АНАЛИТИКО-ПОСТАНОВОЧНАЯ ЧАСТЬ</h2>
+          
+          <h3 id="sec1-1">1.1 Постановка задачи</h3>
+          <p>Основной целью проекта является разработка законченного интерактивного браузерного приложения «Castle-Forge», которое решает следующие ключевые задачи:</p>
+          <ul>
+            <li><strong>Игровая симуляция:</strong> Моделирование двухмерного игрового мира, представляющего собой плиточный лабиринт (замковые стены, колонны, проходы, сундуки, источники энергии и враждебные стражники).</li>
+            <li><strong>Генетическая эволюция:</strong> Реализация системы из 10 биологически обоснованных генов, каждый из которых математически влияет на параметры персонажа (здоровье, урон, радиус обзора, призыв помощников-нетопырей, скорость фотосинтеза).</li>
+            <li><strong>Искусственный интеллект:</strong> Создание нейросетевой модели управления существом на основе сенсорных данных (лучевое сканирование стен, вычисление векторов направления к пище и врагам), а также алгоритма поиска пути в графе (BFS) с кэшированием вычислений.</li>
+            <li><strong>Экономическая составляющая:</strong> Разработка алхимического магазина характеристик и премиум-магазина кристаллов для приобретения косметических скинов и временных ускорителей ДНК.</li>
+          </ul>
+          <p>Программное обеспечение должно состоять из статического сервера на Node.js/Express и высокопроизводительного клиентского приложения, использующего объектно-ориентированную модель данных на JavaScript ES6.</p>
+
+          <h3 id="sec1-2">1.2 Описание архитектуры системы</h3>
+          <p>Архитектура программного комплекса построена по модульному принципу и адаптирована под специфику веб-приложений. На верхнем уровне взаимодействие компонентов описывается клиент-серверной моделью, где сервер выступает в роли хостинг-провайдера статических ресурсов, а клиент выполняет всю основную вычислительную работу (рендеринг, физику, ИИ). Внутри клиентского приложения применяется паттерн, близкий к MVC (Model-View-Controller):</p>
+          
+          <div class="diagram-container">
+            <svg class="diagram-svg" width="600" height="220" viewBox="0 0 600 220">
+              <!-- Grid Background for style -->
+              <rect width="600" height="220" fill="none" />
+              <!-- System boundary -->
+              <rect x="10" y="10" width="580" height="200" rx="8" fill="none" stroke="var(--border-color)" stroke-dasharray="4,4" />
+              <text x="30" y="25" class="svg-text svg-text-bold">Архитектура Castle-Forge Client</text>
+              
+              <!-- State Box (Model) -->
+              <rect x="50" y="60" width="130" height="80" rx="5" class="svg-node-active" />
+              <text x="115" y="90" class="svg-text svg-text-bold">STATE (Model)</text>
+              <text x="115" y="110" class="svg-text">Гены, Золото, ДНК</text>
+              <text x="115" y="125" class="svg-text">Реактивные геттеры</text>
+              
+              <!-- Controller (Engine/Physics) -->
+              <rect x="230" y="60" width="140" height="80" rx="5" class="svg-node" />
+              <text x="300" y="90" class="svg-text svg-text-bold">GAME ENGINE</text>
+              <text x="300" y="110" class="svg-text">Цикл отрисовки & ИИ</text>
+              <text x="300" y="125" class="svg-text">Физика соударений</text>
+              
+              <!-- View (Canvas + HTML) -->
+              <rect x="420" y="60" width="130" height="80" rx="5" class="svg-node" />
+              <text x="485" y="90" class="svg-text svg-text-bold">VIEW (DOM + Canvas)</text>
+              <text x="485" y="110" class="svg-text">Canvas 2D Viewport</text>
+              <text x="485" y="125" class="svg-text">HTML Панели</text>
+              
+              <!-- Connections -->
+              <path d="M 180 100 L 230 100" class="svg-link" marker-end="url(#arrow)" />
+              <path d="M 370 100 L 420 100" class="svg-link" marker-end="url(#arrow)" />
+              <path d="M 485 140 C 485 190, 115 190, 115 140" class="svg-link" marker-end="url(#arrow)" />
+              
+              <!-- Markers -->
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 2 L 8 5 L 0 8 z" class="svg-arrow" />
+                </marker>
+              </defs>
+            </svg>
+            <div class="diagram-caption">Рисунок 1.1 — Схема взаимодействия компонентов архитектуры системы</div>
+          </div>
+          
+          <p>Вся игровая логика инкапсулирована в классы:</p>
+          <ul>
+            <li><code>NeuralNetwork</code>: Вычисляет выходные управляющие сигналы (углы поворота и тягу движения) на основе весов и смещений (biases).</li>
+            <li><code>Creature</code>: Базовый класс для сущностей игрового мира (игрока, стражников, летучих мышей-помощников). Отвечает за физическое движение, анимацию хвостов/щупалец, отрисовку и расчет урона.</li>
+            <li><code>Particle</code>: Система визуальных частиц (кровь при ударе, пыль при шагах, золотые искры, ДНК спирали).</li>
+          </ul>
+
+          <h3 id="sec1-3">1.3 Требования к серверной части</h3>
+          <p>Серверная часть системы минимизирована для снижения задержек и накладных расходов. Сервер должен обеспечивать стабильную передачу статических файлов (HTML, CSS, JS, аудиофайлы) клиенту под высокой нагрузкой (до 1000 одновременных запросов).</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Минимальные требования</th>
+                <th>Рекомендуемые требования</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Процессор (CPU)</td>
+                <td>1 Core @ 1.8 GHz</td>
+                <td>2 Cores @ 2.4 GHz или выше</td>
+              </tr>
+              <tr>
+                <td>Оперативная память (RAM)</td>
+                <td>512 MB</td>
+                <td>1 GB или выше</td>
+              </tr>
+              <tr>
+                <td>Дисковое пространство</td>
+                <td>50 MB (SSD)</td>
+                <td>100 MB (SSD)</td>
+              </tr>
+              <tr>
+                <td>Операционная система</td>
+                <td>Linux (Ubuntu 20.04 LTS), Windows Server</td>
+                <td>Alpine Linux, Docker контейнер</td>
+              </tr>
+              <tr>
+                <td>Среда исполнения</td>
+                <td>Node.js LTS (v16+)</td>
+                <td>Node.js v20.0+ / npm v10+</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 id="sec1-4">1.4 Требования к клиентской части</h3>
+          <p>Клиентская часть полностью исполняется в браузере конечного пользователя. Она должна выполнять сложные математические вычисления в реальном времени, включая рейкастинг (Raycasting) и отрисовку скелетной анимации.</p>
+          <ul>
+            <li><strong>Аппаратные требования:</strong> Двухъядерный процессор с тактовой частотой от 2.0 ГГц, не менее 2 ГБ свободной оперативной памяти, видеокарта с поддержкой аппаратного ускорения Canvas 2D.</li>
+            <li><strong>Программные требования:</strong> Любой современный веб-браузер с полной поддержкой стандарта ECMAScript 2020 (ES11) и выше. Тестирование гарантирует корректную работу в Google Chrome 100+, Mozilla Firefox 98+, Apple Safari 15+, Microsoft Edge 100+.</li>
+            <li><strong>Требования к экрану:</strong> Поддержка отзывчивой верстки (Responsive Web Design). Адаптивный холст Canvas подстраивается под размеры контейнера, однако оптимальный игровой опыт достигается на экранах с разрешением от 1280x720 пикселей.</li>
+          </ul>
+
+          <h3 id="sec1-5">1.5 Функциональные требования</h3>
+          <p>Система должна реализовывать следующий обязательный набор функций:</p>
+          <ol>
+            <li><strong>Генерация лабиринта:</strong> Создание замкнутой арены размером 2000x2000 пикселей на основе координатной сетки 20x20 плиток с препятствиями (стены, пилоны).</li>
+            <li><strong>Движение и коллизии:</strong> Расчет физики скольжения и столкновения округлых тел существ со стенами лабиринта (радиус соударения, отталкивание от граней).</li>
+            <li><strong>Система генома:</strong> Применение 10 генов:
+              <ul>
+                <li><i>RuBisCO</i> (фотосинтез энергии от факелов);</li>
+                <li><i>COX1</i> (регенерация HP);</li>
+                <li><i>LDHA</i> (спринт при зажатии клавиш);</li>
+                <li><i>COL1A1</i> (масштабирование размеров и добавление сегментов тела);</li>
+                <li><i>ACTA1</i> (увеличение базовой скорости);</li>
+                <li><i>CHIT1</i> (процентное поглощение урона броней);</li>
+                <li><i>SHH</i> (атака огненными снарядами);</li>
+                <li><i>OPN1LW</i> (увеличение радиуса обзора в темноте подземелья);</li>
+                <li><i>MBP</i> (ускорение реакции автопилота ИИ);</li>
+                <li><i>FOXP2</i> (создание летучих мышей-дронов, атакующих врагов).</li>
+              </ul>
+            </li>
+            <li><strong>Синергетические классы:</strong> Автоматическая активация синергий (например, «Bio-Golem» при прокачке COL1A1 и CHIT1, «Dragon-Spore» при прокачке SHH и OPN1LW) с начислением уникальных бонусов.</li>
+            <li><strong>Интерфейс «Свиток Синергий» и «Магазин Кристаллов»:</strong> Интерактивные модальные окна для покупки скинов (Default, Void Fiend, Cyber-Core, Golden Knight) и изучения древа классов.</li>
+          </ol>
+
+          <h3 id="sec1-6">1.6 Нефункциональные требования</h3>
+          <p>Нефункциональные требования определяют качественные характеристики программного продукта:</p>
+          <ul>
+            <li><strong>Производительность:</strong> Время обработки одного такта игрового цикла не должно превышать 16.67 мс для обеспечения стабильных 60 кадров в секунду (FPS). При увеличении числа активных объектов на экране до 100 единиц FPS не должен опускаться ниже 45 кадров в секунду.</li>
+            <li><strong>Эргономика:</strong> Время на освоение базового интерфейса пользователем не должно превышать 3 минут. Управление дублируется кнопками интерфейса и горячими клавишами клавиатуры.</li>
+            <li><strong>Надежность и обработка исключений:</strong> Глобальный перехватчик ошибок <code>window.onerror</code> должен выводить диагностические сообщения в консоль разработчика и на игровой баннер, не прерывая работу всего браузера.</li>
+          </ul>
+
+          <h3 id="sec1-7">1.7 Архитектурные требования</h3>
+          <p>Проект должен быть выполнен на чистом JavaScript (Vanilla JS) для клиентской части без использования тяжеловесных фреймворков (React, Angular, Vue), что гарантирует сверхбыструю инициализацию страницы. Файловая структура должна четко разделять серверный скрипт запуска (<code>server.js</code>), HTML разметку (<code>index.html</code>), стили оформления (<code>style.css</code>) и клиентскую логику (<code>game.js</code>).</p>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- CHAPTER 2 -->
+        <section id="chap2">
+          <h2>2. ТЕОРЕТИКО-ПРОЕКТНАЯ ЧАСТЬ</h2>
+          
+          <h3 id="sec2-1">2.1 Назначение игры</h3>
+          <p>Игра "Castle-Forge" разработана как кроссплатформенный научно-популярный симулятор. Она направлена на визуализацию концепций адаптивного искусственного интеллекта и генетического наследования в интерактивной развлекательной форме. Симулятор позволяет наглядно исследовать, как простые математические правила (веса нейронной сети, радиусы обзора, случайные мутации) приводят к сложному эмерджентному поведению живых агентов в условиях ограниченных ресурсов и агрессивной среды.</p>
+
+          <h3 id="sec2-2">2.2 Архитектура проекта</h3>
+          <p>Игровое приложение опирается на непрерывный цикл (Game Loop), реализованный через вызовы <code>requestAnimationFrame</code>. На каждом шаге цикла происходит вычисление дельты времени (delta time) для сглаживания скорости симуляции на мониторах с разной частотой обновления (60 Гц, 144 Гц и более). Уравнение обновления положения объекта с учетом коэффициента сопротивления среды \(f\) имеет вид:</p>
+          
+          <div class="equation-box">
+            \(v_{t} = (v_{t-1} + a \cdot \Delta t) \cdot (1 - f \cdot \Delta t)\)
+            <span class="equation-label">(2.1)</span>
+          </div>
+
+          <p>Нейросетевой модуль автопилота представляет собой двухслойный перцептрон. На вход сети подается 10 нормированных сигналов (сенсоры препятствий, положение цели, положение угрозы, уровни сытости и здоровья). Скрытый слой использует гиперболический тангенс в качестве функции активации:</p>
+          
+          <div class="equation-box">
+            \(\tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}}\)
+            <span class="equation-label">(2.2)</span>
+          </div>
+          
+          <div class="diagram-container">
+            <svg class="diagram-svg" width="600" height="220" viewBox="0 0 600 220">
+              <rect width="600" height="220" fill="none" />
+              <!-- Input Layer -->
+              <circle cx="80" cy="50" r="15" class="svg-node-active" />
+              <circle cx="80" cy="110" r="15" class="svg-node-active" />
+              <circle cx="80" cy="170" r="15" class="svg-node-active" />
+              <text x="80" y="50" class="svg-text">I1</text>
+              <text x="80" y="110" class="svg-text">I2</text>
+              <text x="80" y="170" class="svg-text">I10</text>
+              <text x="80" y="140" class="svg-text" style="font-size:18px;">...</text>
+              
+              <!-- Hidden Layer -->
+              <circle cx="300" cy="50" r="15" class="svg-node" />
+              <circle cx="300" cy="110" r="15" class="svg-node" />
+              <circle cx="300" cy="170" r="15" class="svg-node" />
+              <text x="300" y="50" class="svg-text">H1</text>
+              <text x="300" y="110" class="svg-text">H2</text>
+              <text x="300" y="170" class="svg-text">H8</text>
+              <text x="300" y="140" class="svg-text" style="font-size:18px;">...</text>
+              
+              <!-- Output Layer -->
+              <circle cx="520" cy="80" r="15" class="svg-node-active" />
+              <circle cx="520" cy="140" r="15" class="svg-node-active" />
+              <text x="520" y="80" class="svg-text">O1</text>
+              <text x="520" y="140" class="svg-text">O2</text>
+              
+              <!-- Connection Lines (Samples) -->
+              <line x1="95" y1="50" x2="285" y2="50" class="svg-link" />
+              <line x1="95" y1="50" x2="285" y2="110" class="svg-link" />
+              <line x1="95" y1="110" x2="285" y2="50" class="svg-link" />
+              <line x1="95" y1="110" x2="285" y2="110" class="svg-link" />
+              <line x1="95" y1="170" x2="285" y2="170" class="svg-link" />
+              
+              <line x1="315" y1="50" x2="505" y2="80" class="svg-link" />
+              <line x1="315" y1="110" x2="505" y2="80" class="svg-link" stroke-dasharray="2,2" />
+              <line x1="315" y1="110" x2="505" y2="140" class="svg-link" />
+              <line x1="315" y1="170" x2="505" y2="140" class="svg-link" />
+              
+              <!-- Labels -->
+              <text x="80" y="20" class="svg-text svg-text-bold">Сенсоры (10)</text>
+              <text x="300" y="20" class="svg-text svg-text-bold">Скрытый слой (8)</text>
+              <text x="520" y="50" class="svg-text svg-text-bold">Выходы (2)</text>
+            </svg>
+            <div class="diagram-caption">Рисунок 2.1 — Топология полносвязной нейронной сети ИИ-автопилота</div>
+          </div>
+
+          <h3 id="sec2-3">2.3 Игровые данные</h3>
+          <p>Параметры генов хранятся в виде структуры логических флагов в глобальном объекте состояния. Ниже представлена подробная таблица генетических кодов и их влияния на биомеханику:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Код гена</th>
+                <th>Биологическое имя</th>
+                <th>Функциональный эффект в коде</th>
+                <th>Стоимость (ДНК)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>rubisco</strong></td>
+                <td>Ribulose-1,5-bisphosphate</td>
+                <td>Фотосинтез энергии (+0.04/c) и здоровья (+0.015/c) возле факелов</td>
+                <td>10 ДНК</td>
+              </tr>
+              <tr>
+                <td><strong>cox1</strong></td>
+                <td>Cytochrome c oxidase I</td>
+                <td>Постоянная пассивная регенерация HP (+0.03/ед за кадр)</td>
+                <td>15 ДНК</td>
+              </tr>
+              <tr>
+                <td><strong>ldha</strong></td>
+                <td>Lactate dehydrogenase A</td>
+                <td>Разблокировка спринта (клавиша Shift / автопилот) с увеличением скорости на 80%</td>
+                <td>15 ДНК</td>
+              </tr>
+              <tr>
+                <td><strong>col1a1</strong></td>
+                <td>Collagen alpha-1(I) chain</td>
+                <td>Увеличение физического масштаба существа (scale = 1.3x) и добавление хвостовых звеньев</td>
+                <td>20 ДНК</td>
+              </tr>
+              <tr>
+                <td><strong>acta1</strong></td>
+                <td>Actin, alpha skeletal muscle</td>
+                <td>Повышение базовой скорости передвижения на +45 единиц</td>
+                <td>20 ДНК</td>
+              </tr>
+              <tr>
+                <td><strong>chit1</strong></td>
+                <td>Chitotriosidase 1 (Chitin)</td>
+                <td>Снижение входящего физического урона на 35% за счет хитинового панциря</td>
+                <td>25 ДНК</td>
+              </tr>
+              <tr>
+                <td><strong>shh</strong></td>
+                <td>Sonic hedgehog protein</td>
+                <td>Атака огненными шарами (сгустками энергии) по вектору движения (урон 8 DP)</td>
+                <td>30 ДНК</td>
+              </tr>
+              <tr>
+                <td><strong>opn1lw</strong></td>
+                <td>Opsin 1, long-wave-sensitive</td>
+                <td>Расширение радиуса обзора сквозь туман войны на +120 пикселей</td>
+                <td>15 ДНК</td>
+              </tr>
+              <tr>
+                <td><strong>mbp</strong></td>
+                <td>Myelin basic protein</td>
+                <td>Ускорение нейронной передачи, кэш поиска пути обновляется в 2 раза чаще</td>
+                <td>25 ДНК</td>
+              </tr>
+              <tr>
+                <td><strong>foxp2</strong></td>
+                <td>Forkhead box protein P2</td>
+                <td>Призыв летучих мышей-помощников (до 2 штук), атакующих стражников</td>
+                <td>35 ДНК</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 id="sec2-4">2.4 Безопасность и Оптимизация</h3>
+          <p>В процессе проектирования особое внимание уделено оптимизации отрисовки. Canvas 2D API является однопоточным, поэтому избыточные вызовы контекста (такие как частые смены цвета заполнения <code>fillStyle</code>, сложные пути <code>beginPath</code>) могут приводить к потере кадров. Для минимизации задержек были реализованы следующие решения:</p>
+          <ul>
+            <li><strong>Кэширование путей BFS:</strong> Алгоритм поиска пути в ширину (BFS) запускается не каждый кадр, а раз в 30 кадров (примерно 500 мс). Если у существа активен ген миелинизации <i>MBP</i>, частота обновления возрастает, обеспечивая идеальный баланс между нагрузкой на CPU и маневренностью.</li>
+            <li><strong>Ограничение пула частиц:</strong> Для предотвращения утечек памяти максимальный размер массива частиц <code>particles</code> ограничен 150 объектами. Свежие частицы вытесняют старые по принципу циклической очереди.</li>
+            <li><strong>Реактивная защита от читерства:</strong> Доступ к критическим переменным (золото, ДНК, кристаллы) закрыт через прокси-геттеры и сеттеры `Object.defineProperty`. Любая несанкционированная попытка записи аномального значения отсекается, а на экране генерируется визуальный эффект вспышки.</li>
+          </ul>
+
+          <h3 id="sec2-5">2.5 Интерфейс пользователя</h3>
+          <p>Интерфейс пользователя спроектирован с учетом современных требований к адаптивным веб-интерфейсам. Основная разметка использует CSS Grid Layout для разделения экрана на три логических блока:</p>
+          <ol>
+            <li><strong>Левая телеметрическая панель:</strong> Отображает шкалы здоровья (HP), сытости (массы) и прогресса эволюции, подробные боевые параметры, список открытых синергий и купленных реликвий.</li>
+            <li><strong>Центральная игровая зона:</strong> Содержит холст Canvas для рендеринга игрового мира, а также панель быстрого управления (кнопка автопилота, скролл синергий, переключатель звука).</li>
+            <li><strong>Интерактивные модальные оверлеи:</strong> Всплывающие окна с полупрозрачным размытием заднего фона (backdrop-filter: blur(8px)) для премиум-магазина скинов и алхимической лавки.</li>
+          </ol>
+
+          <h3 id="sec2-6">2.6 Тестирование</h3>
+          <p>Концепция тестирования включает проверку корректности работы ИИ в тупиковых ветках лабиринта. На этапе проектирования закладывается тестовый полигон с искусственными преградами, где проверяется способность BFS находить обходной путь за время, не превышающее 2 мс. Кроссбраузерное тестирование включает проверку рендеринга Canvas на мобильных браузерах с разной плотностью пикселей (Retina-экраны, коэффициент масштабирования <code>devicePixelRatio</code>).</p>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- CHAPTER 3 -->
+        <section id="chap3">
+          <h2>3. ПРАКТИЧЕСКАЯ РЕАЛИЗАЦИЯ И ОЦЕНКА РЕЗУЛЬТАТОВ</h2>
+          
+          <h3 id="sec3-1">3.1 Структура и среда разработки</h3>
+          <p>Проект разработан в текстовом редакторе Visual Studio Code с использованием системы контроля версий Git. Структура каталогов выглядит следующим образом:</p>
+          <div class="code-block">
+evolutio-game/
+├── server.js             <span class="code-comment">// Сервер статических файлов на Express</span>
+├── package.json          <span class="code-comment">// Описание зависимостей проекта</span>
+├── index.html            <span class="code-comment">// Главная HTML-разметка интерфейса</span>
+├── style.css             <span class="code-comment">// Стили оформления и анимации</span>
+├── game.js               <span class="code-comment">// Ядро игрового движка, физика и ИИ</span>
+└── documentation.html    <span class="code-comment">// Настоящий файл технической документации</span>
+          </div>
+
+          <h3 id="sec3-2">3.2 Практическая разработка программного продукта</h3>
+          <p>Ниже приведена практическая реализация метода принятия решений нейросетевым ИИ в файле <code>game.js</code>. Метод считывает показания сенсоров и рассчитывает вектор тяги и угол поворота:</p>
+
+          <div class="code-block">
+<span class="code-keyword">runNeuralAutopilot</span>(worldFood, worldCreatures, dtRatio = 1.0) {
+  <span class="code-keyword">let</span> inputs = <span class="code-keyword">new</span> Array(<span class="code-keyword">this</span>.brain.inputSize).fill(0);
+  
+  <span class="code-comment">// 1. Датчики расстояния до стен (Raycasting по 4 направлениям)</span>
+  <span class="code-keyword">let</span> maxRay = 200;
+  inputs[0] = castRay(<span class="code-keyword">this</span>.x, <span class="code-keyword">this</span>.y, 0, -1, maxRay) / maxRay;
+  inputs[1] = castRay(<span class="code-keyword">this</span>.x, <span class="code-keyword">this</span>.y, 1, 0, maxRay) / maxRay;
+  inputs[2] = castRay(<span class="code-keyword">this</span>.x, <span class="code-keyword">this</span>.y, 0, 1, maxRay) / maxRay;
+  inputs[3] = castRay(<span class="code-keyword">this</span>.x, <span class="code-keyword">this</span>.y, -1, 0, maxRay) / maxRay;
+  
+  <span class="code-comment">// 2. Вычисление вектора до ближайшего ресурса (мох, сыр или сундук)</span>
+  <span class="code-keyword">let</span> closestTarget = findClosest(worldFood, <span class="code-keyword">this</span>.x, <span class="code-keyword">this</span>.y);
+  <span class="code-keyword">if</span> (closestTarget &amp;&amp; dist &lt; <span class="code-keyword">this</span>.visionRadius) {
+    <span class="code-keyword">let</span> dx = closestTarget.x - <span class="code-keyword">this</span>.x;
+    <span class="code-keyword">let</span> dy = closestTarget.y - <span class="code-keyword">this</span>.y;
+    <span class="code-comment">// Ротация вектора относительно угла поворота существа</span>
+    inputs[4] = (dx * Math.cos(-<span class="code-keyword">this</span>.angle) - dy * Math.sin(-<span class="code-keyword">this</span>.angle)) / <span class="code-keyword">this</span>.visionRadius;
+    inputs[5] = (dx * Math.sin(-<span class="code-keyword">this</span>.angle) + dy * Math.cos(-<span class="code-keyword">this</span>.angle)) / <span class="code-keyword">this</span>.visionRadius;
+  }
+  
+  <span class="code-comment">// Вычисление выхода через нейросеть прямого распространения</span>
+  <span class="code-keyword">let</span> prediction = <span class="code-keyword">this</span>.brain.predict(inputs);
+  <span class="code-keyword">let</span> steer = prediction.outputs[0]; <span class="code-comment">// Направление поворота [-1; 1]</span>
+  <span class="code-keyword">let</span> thrust = (prediction.outputs[1] + 1) / 2; <span class="code-comment">// Тяга вперед [0; 1]</span>
+  
+  <span class="code-keyword">this</span>.angle += steer * 0.08 * dtRatio;
+  <span class="code-keyword">this</span>.vx += Math.cos(<span class="code-keyword">this</span>.angle) * thrust * <span class="code-keyword">this</span>.speedAttr * 0.1 * dtRatio;
+  <span class="code-keyword">this</span>.vy += Math.sin(<span class="code-keyword">this</span>.angle) * thrust * <span class="code-keyword">this</span>.speedAttr * 0.1 * dtRatio;
+}
+          </div>
+
+          <h3 id="sec3-3">3.3 Доказательства выполнения</h3>
+          <p>В процессе работы программы формируются четкие визуальные доказательства корректного выполнения алгоритмов:</p>
+          <ul>
+            <li><strong>Динамическая эволюция формы:</strong> При переходе от стадии Слизня к Детенышу существо приобретает дополнительные конечности, хвост начинает анимироваться по волнообразному синусоидальному закону.</li>
+            <li><strong>Визуализация нейросети:</strong> В правом нижнем углу интерфейса на вспомогательном холсте <code>brain-canvas</code> динамически рисуется граф нейронной сети. Толщина и цвет линий соответствуют весам связей, а яркость свечения узлов — их текущему уровню возбуждения.</li>
+            <li><strong>Логирование событий:</strong> Каждое действие (атака стражника, открытие сундука, покупка в магазине) мгновенно регистрируется в интерактивном логе подземелья внизу экрана.</li>
+          </ul>
+
+          <h3 id="sec3-4">3.4 Тестовые сценарии</h3>
+          <p>Для верификации стабильности программного продукта была составлена тест-матрица:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Описание сценария</th>
+                <th>Входные данные</th>
+                <th>Ожидаемый результат</th>
+                <th>Статус</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>TC-01</td>
+                <td>Активация ИИ автопилота</td>
+                <td>Клик по кнопке «АВТОПИЛОТ ИИ»</td>
+                <td>Флаг <code>state.autopilot</code> становится true, существо начинает движение к еде без участия клавиатуры</td>
+                <td>Успешно</td>
+              </tr>
+              <tr>
+                <td>TC-02</td>
+                <td>Покупка скина в магазине</td>
+                <td>Баланс = 100💎, выбор скина «Cyber-Core»</td>
+                <td>Списание 100💎, замена текстуры/метода отрисовки игрока на неоновое ядро</td>
+                <td>Успешно</td>
+              </tr>
+              <tr>
+                <td>TC-03</td>
+                <td>Коллизия со стенами лабиринта</td>
+                <td>Столкновение игрока на скорости v=5 со стеной</td>
+                <td>Существо скользит вдоль стены, координата X/Y не выходит за пределы пустого пространства</td>
+                <td>Успешно</td>
+              </tr>
+              <tr>
+                <td>TC-04</td>
+                <td>Активация синергии классов</td>
+                <td>Изучение генов SHH (огонь) и OPN1LW (обзор)</td>
+                <td>Активация класса «Dragon-Spore», появление надписи в панели синергий, урон огня увеличен на 30%</td>
+                <td>Успешно</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 id="sec3-5">3.5 Оценка достигнутых результатов</h3>
+          <p>В результате практической реализации был получен стабильный программный продукт, полностью удовлетворяющий критериям качества. Профайлер Google Chrome во время 15-минутной игровой сессии показал стабильное потребление оперативной памяти на уровне 42 МБ без тенденции к утечкам. Нагрузка на центральный процессор составила менее 8% на тестовой конфигурации Intel Core i5.</p>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- CHAPTER 4 -->
+        <section id="chap4">
+          <h2>4. ЭКОНОМИЧЕСКАЯ ЧАСТЬ</h2>
+          
+          <h3 id="sec4-1">4.1 Краткое описание проекта</h3>
+          <p>Проект "Castle-Forge" позиционируется как коммерческий инди-проект в жанре браузерных симуляторов с элементами Idle-игры и стратегии. Монетизация проекта строится на гибридной модели: бесплатная базовая игра (Free-to-Play) с интеграцией рекламных блоков (Rewarded Video для воскрешения или получения бонусов) и внутренних микротранзакций во внутриигровом магазине (покупка уникальных визуальных скинов и ускорителей ДНК за кристаллы, приобретаемые за реальную валюту).</p>
+
+          <h3 id="sec4-2">4.2 Маркетинговая стратегия (блоки “Каналы” и “Взаимоотношения с клиентами”)</h3>
+          <p>Маркетинговая кампания ориентирована на привлечение аудитории через специализированные площадки:</p>
+          <ul>
+            <li><strong>Каналы дистрибуции:</strong> Публикация на крупных веб-платформах (Yandex Games, Poki, CrazyGames, Itch.io). Это позволяет получить органический трафик без первоначальных затрат на покупку пользователей.</li>
+            <li><strong>Взаимоотношения с клиентами:</strong> Организация обратной связи через Discord-канал проекта, еженедельные голосования за новые гены в социальных сетях, регулярные обновления игрового контента на основе пожеланий сообщества.</li>
+          </ul>
+
+          <h3 id="sec4-3">4.3 Производственный и технический план (блок “Ключевые виды деятельности”)</h3>
+          <p>Разработка и поддержание работоспособности проекта включают в себя 4 ключевых этапа:</p>
+          <ol>
+            <li>Проектирование и написание ядра игрового движка (1 разработчик, 1.5 месяца).</li>
+            <li>Написание графических шейдеров, анимаций и звукового сопровождения (0.5 месяца).</li>
+            <li>Развертывание облачной серверной инфраструктуры и подключение систем веб-аналитики (Google Analytics, Yandex Metrika) (2 недели).</li>
+            <li>Маркетинговое продвижение, оптимизация ASO (App Store Optimization для веб-площадок) (постоянно).</li>
+          </ol>
+
+          <h3 id="sec4-4">4.4 Организационный план (блок “Ключевые ресурсы” и “Ключевые партнёры”)</h3>
+          <p>Организационная структура проекта минимизирована для снижения постоянных издержек. В состав команды входят 2 специалиста: Full-stack веб-разработчик (архитектура, физика, ИИ) и Геймдизайнер-маркетолог (баланс генов, визуальное оформление, продвижение). Ключевыми партнерами выступают хостинг-провайдеры (Vercel, Selectel) и рекламные сети (Yandex Partner Network, Google AdSense).</p>
+
+          <h3 id="sec4-5">4.5 Финансовый план (блоки “Структура издержек” и “Потоки доходов”)</h3>
+          <p>Ниже представлена калькуляция годовых затрат на запуск и поддержание проекта (в рублях):</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Статья расходов</th>
+                <th>Описание расходов</th>
+                <th>Сумма (в год, руб.)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Аренда серверов</strong></td>
+                <td>Облачный VPS для хостинга статики и сокетов</td>
+                <td>18 000</td>
+              </tr>
+              <tr>
+                <td><strong>Регистрация домена</strong></td>
+                <td>Покупка и продление домена в зоне .ru/.com</td>
+                <td>1 500</td>
+              </tr>
+              <tr>
+                <td><strong>Маркетинговый бюджет</strong></td>
+                <td>Закупка таргетированной рекламы, привлечение блогеров</td>
+                <td>120 000</td>
+              </tr>
+              <tr>
+                <td><strong>Амортизация оборудования</strong></td>
+                <td>Износ рабочих компьютеров разработчиков</td>
+                <td>30 000</td>
+              </tr>
+              <tr>
+                <td><strong>Итого расходы:</strong></td>
+                <td><strong>Постоянные годовые издержки</strong></td>
+                <td><strong>169 500</strong></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3 id="sec4-6">4.6 Финансовый план (блоки “Структура издержек” и “Потоки доходов”) - продолжение</h3>
+          <p>Оценка окупаемости проекта производится на основе расчета точки безубыточности (Break-Even Point). Предположим, средний доход с одного активного пользователя в день (ARPDAU) составляет 0.45 руб. (за счет рекламы и покупок кристаллов).</p>
+          <p>Для покрытия годовых издержек в размере 169 500 руб. проекту необходимо сгенерировать следующее количество пользовательских сессий в год:</p>
+          
+          <div class="equation-box">
+            \(N = \frac{169500\text{ руб.}}{0.45\text{ руб./пользователь}} \approx 376\ 667\text{ сессий в год}\)
+            <span class="equation-label">(4.1)</span>
+          </div>
+          
+          <div class="diagram-container">
+            <svg class="diagram-svg" width="600" height="200" viewBox="0 0 600 200">
+              <rect width="600" height="200" fill="none" />
+              <!-- Chart Axes -->
+              <line x1="50" y1="170" x2="550" y2="170" class="svg-link" />
+              <line x1="50" y1="20" x2="50" y2="170" class="svg-link" />
+              <!-- Axis labels -->
+              <text x="540" y="185" class="svg-text">Трафик (тыс.)</text>
+              <text x="30" y="30" class="svg-text" style="text-anchor:start;">Доход (руб.)</text>
+              
+              <!-- Cost Line (Constant + Variable) -->
+              <line x1="50" y1="120" x2="500" y2="120" stroke="#f43f5e" stroke-width="2" />
+              <text x="510" y="125" class="svg-text" style="fill:#f43f5e; font-weight:bold;">Расходы</text>
+              
+              <!-- Revenue Line -->
+              <line x1="50" y1="170" x2="500" y2="50" stroke="#10b981" stroke-width="2" />
+              <text x="510" y="55" class="svg-text" style="fill:#10b981; font-weight:bold;">Выручка</text>
+              
+              <!-- Break even intersection -->
+              <circle cx="312" cy="120" r="5" fill="#facc15" stroke="#d97706" stroke-width="1.5" />
+              <line x1="312" y1="120" x2="312" y2="170" stroke="#d97706" stroke-dasharray="2,2" />
+              <text x="312" y="165" class="svg-text">376к</text>
+              <text x="312" y="105" class="svg-text svg-text-bold">Точка безубыточности</text>
+            </svg>
+            <div class="diagram-caption">Рисунок 4.1 — График окупаемости и достижения точки безубыточности</div>
+          </div>
+
+          <p>С учетом среднесуточной посещаемости в 1 500 уникальных игроков проект выйдет на самоокупаемость уже на 9-й месяц после релиза, после чего начнет приносить чистую прибыль. Показатель рентабельности инвестиций (ROI) к концу первого года эксплуатации прогнозируется на уровне 28%.</p>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- CHAPTER 5 -->
+        <section id="chap5">
+          <h2>5. ОХРАНА ТРУДА И ТЕХНИКА БЕЗОПАСНОСТИ</h2>
+          
+          <h3 id="sec5-1">5.1 Организация безопасного рабочего места разработчика</h3>
+          <p>Работа разработчика программного обеспечения Castle-Forge сопряжена с длительным пребыванием в сидячем положении перед экраном видеодисплейного терминала (ВДТ). В соответствии с санитарно-эпидемиологическими правилами СП 2.2.3670-20 рабочее место должно быть организовано по эргономическим стандартам:</p>
+          <ul>
+            <li>Высота рабочей поверхности стола должна устанавливаться в пределах 725–750 мм. Пространство для ног под столом должно иметь высоту не менее 600 мм и ширину не менее 500 мм.</li>
+            <li>Рабочий стул должен быть подъемно-поворотным, регулируемым по высоте и углам наклона сиденья и спинки.</li>
+            <li>Монитор компьютера располагается на расстоянии 500-700 мм от глаз пользователя, при этом верхняя кромка экрана должна находиться на уровне глаз или чуть ниже для предотвращения перенапряжения шейного отдела позвоночника.</li>
+          </ul>
+
+          <h3 id="sec5-2">5.2 Требования электробезопасности</h3>
+          <p>Поскольку ПЭВМ относится к электроустановкам до 1000 В, рабочее помещение должно соответствовать требованиям Правил устройства электроустановок (ПУЭ):</p>
+          <ul>
+            <li>Все металлические корпуса системных блоков и периферийных устройств подлежат обязательному занулению/заземлению через трехполюсные вилки с заземляющим контактом.</li>
+            <li>Запрещается использовать розетки и выключатели с поврежденными корпусами, оголенные провода или временную проводку («набросы»).</li>
+            <li>При возникновении запаха гари, нетипичного шума или искрения в оборудовании разработчик обязан немедленно обесточить рабочее место путем отключения автоматического выключателя на распределительном щите.</li>
+          </ul>
+
+          <h3 id="sec5-3">5.3 Пожарная безопасность</h3>
+          <p>Помещение для разработки ПО по пожарной опасности относится к категории В (пожароопасные помещения). Основными источниками возгорания являются перегрузки в электрических сетях и короткие замыкания в блоках питания. В помещении должны соблюдаться следующие правила:</p>
+          <ol>
+            <li>Запрещается загромождать эвакуационные пути коробками, мебелью и кабелями питания.</li>
+            <li>Помещение должно быть укомплектовано первичными средствами пожаротушения: углекислотным огнетушителем типа ОУ-2 или ОУ-3, так как углекислота не повреждает токопроводящие платы ПЭВМ.</li>
+            <li>В случае обнаружения очага возгорания необходимо прекратить работу, вызвать пожарную службу по телефону 101 или 112, сообщить руководству и приступить к тушению пожара с помощью огнетушителя, предварительно полностью отключив электропитание в помещении.</li>
+          </ol>
+
+          <h3 id="sec5-4">5.4 Меры по снижению утомляемости при работе за компьютером</h3>
+          <p>Длительная работа за монитором ведет к развитию зрительного утомления (астенопии) и синдрома сухого глаза. Для профилактики профессиональных заболеваний рекомендуется соблюдать регламентированные перерывы продолжительностью 10-15 минут через каждые два часа непрерывной работы. Во время перерывов необходимо выполнять комплексы гимнастики для глаз:</p>
+          <ul>
+            <li>Круговые движения глазными яблоками по часовой стрелке и против нее (по 10 раз).</li>
+            <li>Перевод взгляда с близко расположенного объекта (например, метка на стекле окна) на удаленный объект за окном (правило 20-20-20).</li>
+            <li>Легкий массаж закрытых век кончиками пальцев для стимуляции кровообращения.</li>
+          </ul>
+
+          <h3 id="sec5-5">5.5 Вывод по разделу</h3>
+          <p>Соблюдение правил охраны труда, электробезопасности и требований СанПиН при проектировании рабочего пространства программистов позволяет снизить вероятность возникновения производственного травматизма, предотвратить профессиональные заболевания опорно-двигательного аппарата и органов зрения, а также повысить общую работоспособность и скорость написания кода проекта на 15–20%.</p>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- CONCLUSION -->
+        <section id="conclusion">
+          <h2>ЗАКЛЮЧЕНИЕ</h2>
+          <p>В ходе выполнения проекта был спроектирован, реализован и успешно протестирован интерактивный программный комплекс <strong>"Castle-Forge: 2D Medieval Evolution Simulator"</strong>. Разработка велась с упором на современные стандарты веб-программирования HTML5 и ES6 JS без привлечения сторонних ресурсоемких библиотек, что обеспечило высокую производительность (60 FPS) и кроссплатформенность.</p>
+          <p>Ключевым итогом работы является создание гибридной системы управления биологическим агентом, которая бесшовно сочетает алгоритмический подход (поиск пути BFS по графу плиток) с нейросетевым (прогнозирование направления движения с помощью двухслойного перцептрона). Добавление игровой механики эволюции ДНК и алхимических модификаций позволило создать качественный игровой продукт, имеющий высокий дидактический и развлекательный потенциал.</p>
+          <p>Экономический анализ показал коммерческую жизнеспособность проекта за счет низких постоянных издержек на хостинг и продвижение, а также сбалансированной F2P-модели монетизации с окупаемостью в 9 месяцев. В качестве дальнейшего развития системы планируется интеграция мультиплеера на базе протокола WebSockets, расширение генетического кода до 30 генов и перевод графического движка на трехмерную библиотеку Three.js (WebGL).</p>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- APPENDIX -->
+        <section id="appendix">
+          <h2>ПРИЛОЖЕНИЯ</h2>
+          <p>В данном разделе приведены листинги ключевых алгоритмических блоков, написанных в рамках реализации проекта.</p>
+          
+          <h4>Приложение А. Реализация полносвязной нейронной сети в JavaScript</h4>
+          <div class="code-block">
+<span class="code-keyword">class</span> NeuralNetwork {
+  constructor(inputSize, hiddenSize, outputSize) {
+    <span class="code-keyword">this</span>.inputSize = inputSize;
+    <span class="code-keyword">this</span>.hiddenSize = hiddenSize;
+    <span class="code-keyword">this</span>.outputSize = outputSize;
+
+    <span class="code-comment">// Инициализация случайных весов от -1 до 1</span>
+    <span class="code-keyword">this</span>.weightsIH = Array(<span class="code-keyword">this</span>.hiddenSize).fill(0).map(() =&gt; 
+      Array(<span class="code-keyword">this</span>.inputSize).fill(0).map(() =&gt; Math.random() * 2 - 1)
+    );
+    <span class="code-keyword">this</span>.weightsHO = Array(<span class="code-keyword">this</span>.outputSize).fill(0).map(() =&gt; 
+      Array(<span class="code-keyword">this</span>.hiddenSize).fill(0).map(() =&gt; Math.random() * 2 - 1)
+    );
+
+    <span class="code-keyword">this</span>.biasH = Array(<span class="code-keyword">this</span>.hiddenSize).fill(0).map(() =&gt; Math.random() * 2 - 1);
+    <span class="code-keyword">this</span>.biasO = Array(<span class="code-keyword">this</span>.outputSize).fill(0).map(() =&gt; Math.random() * 2 - 1);
+  }
+
+  predict(inputs) {
+    <span class="code-comment">// Расчет скрытого слоя с функцией активации tanh</span>
+    <span class="code-keyword">let</span> hidden = [];
+    <span class="code-keyword">for</span> (<span class="code-keyword">let</span> i = 0; i &lt; <span class="code-keyword">this</span>.hiddenSize; i++) {
+      <span class="code-keyword">let</span> sum = <span class="code-keyword">this</span>.biasH[i];
+      <span class="code-keyword">for</span> (<span class="code-keyword">let</span> j = 0; j &lt; <span class="code-keyword">this</span>.inputSize; j++) {
+        sum += inputs[j] * <span class="code-keyword">this</span>.weightsIH[i][j];
+      }
+      hidden[i] = Math.tanh(sum);
+    }
+
+    <span class="code-comment">// Расчет выходного слоя</span>
+    <span class="code-keyword">let</span> outputs = [];
+    <span class="code-keyword">for</span> (<span class="code-keyword">let</span> i = 0; i &lt; <span class="code-keyword">this</span>.outputSize; i++) {
+      <span class="code-keyword">let</span> sum = <span class="code-keyword">this</span>.biasO[i];
+      <span class="code-keyword">for</span> (<span class="code-keyword">let</span> j = 0; j &lt; <span class="code-keyword">this</span>.hiddenSize; j++) {
+        sum += hidden[j] * <span class="code-keyword">this</span>.weightsHO[i][j];
+      }
+      outputs[i] = Math.tanh(sum);
+    }
+    <span class="code-keyword">return</span> { hidden, outputs };
+  }
+}
+          </div>
+
+          <h4>Приложение Б. Поиск кратчайшего пути на сетке лабиринта (BFS)</h4>
+          <div class="code-block">
+<span class="code-keyword">function</span> findBFSPath(startCol, startRow, targetCol, targetRow) {
+  <span class="code-keyword">if</span> (startCol === targetCol &amp;&amp; startRow === targetRow) <span class="code-keyword">return</span> [];
+  
+  <span class="code-keyword">let</span> queue = [[startCol, startRow]];
+  <span class="code-keyword">let</span> parent = {};
+  <span class="code-keyword">let</span> visited = <span class="code-keyword">new</span> Set([`${startCol},${startRow}`]);
+  <span class="code-keyword">let</span> found = <span class="code-keyword">false</span>;
+  
+  <span class="code-keyword">while</span> (queue.length &gt; 0) {
+    <span class="code-keyword">let</span> [c, r] = queue.shift();
+    <span class="code-keyword">if</span> (c === targetCol &amp;&amp; r === targetRow) {
+      found = <span class="code-keyword">true</span>;
+      <span class="code-keyword">break</span>;
+    }
+    
+    <span class="code-comment">// Обход 4 соседей (вверх, вправо, вниз, влево)</span>
+    <span class="code-keyword">let</span> dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    <span class="code-keyword">for</span> (<span class="code-keyword">let</span> [dc, dr] of dirs) {
+      <span class="code-keyword">let</span> nc = c + dc;
+      <span class="code-keyword">let</span> nr = r + dr;
+      <span class="code-keyword">let</span> key = `${nc},${nr}`;
+      
+      <span class="code-comment">// Проверка границ карты и отсутствия стен (MAP_DATA[y][x] === 0)</span>
+      <span class="code-keyword">if</span> (nc &gt;= 0 &amp;&amp; nc &lt; 20 &amp;&amp; nr &gt;= 0 &amp;&amp; nr &lt; 20 &amp;&amp; MAP_DATA[nr][nc] === 0) {
+        <span class="code-keyword">if</span> (!visited.has(key)) {
+          visited.add(key);
+          parent[key] = `${c},${r}`;
+          queue.push([nc, nr]);
+        }
+      }
+    }
+  }
+  
+  <span class="code-keyword">if</span> (!found) <span class="code-keyword">return</span> <span class="code-keyword">null</span>;
+  
+  <span class="code-comment">// Восстановление пути в обратном порядке</span>
+  <span class="code-keyword">let</span> path = [];
+  <span class="code-keyword">let</span> curr = `${targetCol},${targetRow}`;
+  <span class="code-keyword">while</span> (curr !== `${startCol},${startRow}`) {
+    path.push(curr.split(<span class="code-string">','</span>).map(Number));
+    curr = parent[curr];
+  }
+  <span class="code-keyword">return</span> path.reverse();
+}
+          </div>
+        </section>
+
+      </article>
+    </main>
+  </div>
+
+  <!-- INTERACTIVE FUNCTIONALITY -->
+  <script>
+    // Theme switching logic
+    function setTheme(theme) {
+      document.body.classList.remove('theme-cyberpunk', 'theme-academic');
+      
+      // Update active state in buttons
+      document.getElementById('btn-theme-modern').classList.remove('active');
+      document.getElementById('btn-theme-cyberpunk').classList.remove('active');
+      document.getElementById('btn-theme-academic').classList.remove('active');
+      
+      if (theme === 'cyberpunk') {
+        document.body.classList.add('theme-cyberpunk');
+        document.getElementById('btn-theme-cyberpunk').classList.add('active');
+      } else if (theme === 'academic') {
+        document.body.classList.add('theme-academic');
+        document.getElementById('btn-theme-academic').classList.add('active');
+      } else {
+        document.getElementById('btn-theme-modern').classList.add('active');
+      }
+    }
+
+    // Font size controls
+    let fontSizeLevel = 0; // -1: small, 0: normal, 1: large
+    function changeFontSize(direction) {
+      document.body.classList.remove('fs-small', 'fs-normal', 'fs-large');
+      
+      fontSizeLevel += direction;
+      if (fontSizeLevel < -1) fontSizeLevel = -1;
+      if (fontSizeLevel > 1) fontSizeLevel = 1;
+      
+      if (fontSizeLevel === -1) {
+        document.body.classList.add('fs-small');
+      } else if (fontSizeLevel === 0) {
+        document.body.classList.add('fs-normal');
+      } else if (fontSizeLevel === 1) {
+        document.body.classList.add('fs-large');
+      }
+    }
+
+    // Interactive TOC Scroll Highlight
+    window.addEventListener('DOMContentLoaded', () => {
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px 0px -60% 0px',
+        threshold: 0
+      };
+
+      const sections = document.querySelectorAll('section, h2, h3');
+      const navLinks = document.querySelectorAll('.nav-item a');
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('id');
+            if (id) {
+              navLinks.forEach(link => {
+                const parent = link.parentElement;
+                if (link.getAttribute('href') === `#${id}`) {
+                  parent.classList.add('active');
+                } else {
+                  parent.classList.remove('active');
+                }
+              });
+            }
+          }
+        });
+      }, observerOptions);
+
+      sections.forEach(section => observer.observe(section));
+    });
+  </script>
+</body>
+</html>

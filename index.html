@@ -172,18 +172,24 @@
       </div>
     </section>
 
-    <!-- RIGHT PANEL: NEURAL BRAIN MAP -->
+    <!-- RIGHT PANEL: BIO-RADAR & ENVIRONMENT SCANNER -->
     <section class="lab-panel brain-panel">
-      <h2 class="panel-title">🧠 Сенсоры Лабиринта и Нейросеть</h2>
+      <h2 class="panel-title">📡 Био-Локатор и Радар Окружения</h2>
       
       <div class="brain-canvas-wrapper">
         <canvas id="brain-canvas"></canvas>
       </div>
 
       <div class="brain-legend">
-        <div class="legend-item"><span class="node-dot in"></span><span>Входы (Стены, Цели)</span></div>
-        <div class="legend-item"><span class="node-dot hid"></span><span>Скрытый мозг</span></div>
-        <div class="legend-item"><span class="node-dot out"></span><span>Выходы (Моторика)</span></div>
+        <div class="legend-item"><span class="node-dot in" style="background-color: #22c55e;"></span><span>Еда (Биомасса)</span></div>
+        <div class="legend-item"><span class="node-dot hid" style="background-color: #eab308;"></span><span>Добыча / Сундуки</span></div>
+        <div class="legend-item"><span class="node-dot out" style="background-color: #ef4444;"></span><span>Угрозы (Враги)</span></div>
+      </div>
+
+      <div class="radar-telemetry">
+        <div class="telemetry-row">Координаты: <span id="tel-coords">X: 0, Y: 0</span></div>
+        <div class="telemetry-row">Ближайшая угроза: <span id="tel-threat">Не обнаружено</span></div>
+        <div class="telemetry-row">Объектов поблизости: <span id="tel-objects">0</span></div>
       </div>
 
       <h2 class="panel-title font-mono">📜 Хроника Выживания в Замке</h2>
